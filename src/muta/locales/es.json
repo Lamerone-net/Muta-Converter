@@ -164,6 +164,7 @@
   "Si estraggono i file e si crea un nuovo archivio. ARJ/RAR: solo lettura. Password, link, file speciali e percorsi non sicuri sono rifiutati. Permessi e metadati possono cambiare.": "Los archivos se extraen y se vuelven a comprimir. ARJ/RAR: solo lectura. Se rechazan contraseñas, enlaces, archivos especiales y rutas no seguras. Los permisos y metadatos pueden cambiar.",
   "Solo prima pagina/fotogramma (scarta gli altri)": "Solo primera página/fotograma (descartar el resto)",
   "Spiega perché non ci sono conversioni": "Explicar por qué no hay conversiones disponibles",
+  "Sviluppato da {0}": "Desarrollado por {0}",
   "Tempo massimo superato ({0} secondi).": "Tiempo máximo superado ({0} segundos).",
   "Termina le conversioni prima di installare. Puoi ripetere il controllo aggiornamenti in seguito.": "Termina las conversiones antes de instalar. Puedes volver a buscar actualizaciones más tarde.",
   "Terminato · {0} riusciti · {1} errori · {2} non elaborati": "Finalizado · {0} correctos · {1} errores · {2} sin procesar",

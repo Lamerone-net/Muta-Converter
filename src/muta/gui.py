@@ -51,7 +51,9 @@ def app_icon() -> QIcon:
 
 
 def about(parent=None):
-    message = f"<h3>Muta Converter {__version__}</h3><p>Python · Qt · Pillow · LibreOffice · FFmpeg · 7-Zip</p>"
+    message = f"<h3>Muta Converter {__version__}</h3>"
+    message += "<p>" + tr("Sviluppato da {0}", "WoollySheep") + "</p>"
+    message += "<p>Python · Qt · Pillow · LibreOffice · FFmpeg · 7-Zip</p>"
     message += "<p>" + tr("I file vengono elaborati sul computer. LibreOffice, FFmpeg e 7-Zip sono motori esterni.") + "</p>"
     message += '<p><a href="https://github.com/Lamerone-net/Muta-Converter">GitHub</a></p>'
     QMessageBox.about(parent, tr('About Muta Converter'), message)
@@ -156,6 +158,7 @@ class Preferences(QDialog):
         about_tab = QWidget()
         about_layout = QVBoxLayout(about_tab)
         about_layout.addWidget(QLabel(tr('Muta Converter {0}\n\nConversioni locali · Windows, macOS, Linux', __version__)))
+        about_layout.addWidget(QLabel(tr("Sviluppato da {0}", "WoollySheep")))
         about_layout.addWidget(QLabel(tr("Apple iWork: Pages → documenti, Numbers → fogli, Keynote → presentazioni.\nL'importazione dipende dalla versione del file e da LibreOffice. Nessuna esportazione in iWork.\n\nIl menu contestuale è attualmente disponibile su Windows nel menu classico.\nSu Windows 11: Mostra altre opzioni.\nSelezione multipla: usa il pulsante Converti file.\n\nLe immagini vengono esportate senza metadati. CSV conserva un solo foglio;\ni video conservano la prima traccia video e, se richiesta, la prima traccia audio.")))
         about_layout.addStretch()
         self.tabs.addTab(about_tab, tr('About'))

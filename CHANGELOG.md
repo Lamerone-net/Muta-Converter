@@ -4,6 +4,13 @@ All notable changes are recorded here. Versions follow Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-11-24
+
+### Added
+
+- Credit WoollySheep in the About dialog and Preferences About tab, localized in all five languages.
+- Identify WoollySheep as the Windows installer publisher.
+
 ## [0.1.2] - 2026-11-24
 
 ### Added

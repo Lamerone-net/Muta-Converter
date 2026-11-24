@@ -6,7 +6,7 @@
 AppId={{B63BB232-9707-4C14-97CE-1821F755B725}
 AppName=Muta Converter
 AppVersion={#AppVersion}
-AppPublisher=Lamerone-net
+AppPublisher=WoollySheep
 AppPublisherURL=https://github.com/Lamerone-net/Muta-Converter
 DefaultDirName={sd}\Programs\Muta Converter
 DisableDirPage=no
