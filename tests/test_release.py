@@ -11,7 +11,7 @@ spec.loader.exec_module(release)
 
 class ReleaseTests(unittest.TestCase):
     def test_current_version_has_release_notes(self):
-        self.assertIn('### Added', release.notes(release.current_version()))
+        self.assertRegex(release.notes(release.current_version()), r'(?m)^### (Added|Changed|Fixed|Removed|Security)\s*$')
 
     def test_prepare_release_updates_version_and_moves_changes(self):
         with tempfile.TemporaryDirectory() as folder:

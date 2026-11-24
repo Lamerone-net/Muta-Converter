@@ -14,6 +14,7 @@ analysis = Analysis(
     pathex=[str(root / 'src')],
     binaries=[],
     datas=[(str(root / 'assets/branding/logo.png'), 'assets/branding'),
+           (str(root / 'assets/branding/icon.ico'), 'assets/branding'),
            (str(root / 'docs/third-party-notices.md'), '.'), *metadata],
     hiddenimports=['pillow_heif'],
     hookspath=[], hooksconfig={}, runtime_hooks=[],
@@ -24,9 +25,10 @@ analysis = Analysis(
 pyz = PYZ(analysis.pure)
 gui = EXE(pyz, analysis.scripts, [], exclude_binaries=True, name='Muta',
           console=False, debug=False, strip=False, upx=False,
-          icon=str(root / 'assets/branding/logo.png') if sys.platform == 'win32' else None)
+          icon=str(root / 'assets/branding/icon.ico') if sys.platform == 'win32' else None)
 cli = EXE(pyz, analysis.scripts, [], exclude_binaries=True, name='muta-cli',
-          console=True, debug=False, strip=False, upx=False)
+          console=True, debug=False, strip=False, upx=False,
+          icon=str(root / 'assets/branding/icon.ico') if sys.platform == 'win32' else None)
 collection = COLLECT(gui, cli, analysis.binaries, analysis.datas,
                      strip=False, upx=False, name='Muta')
 if sys.platform == 'darwin':

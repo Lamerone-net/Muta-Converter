@@ -21,6 +21,7 @@ WizardStyle=modern
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 UninstallDisplayIcon={app}\Muta.exe
+SetupIconFile=..\assets\branding\icon.ico
 CloseApplications=yes
 CloseApplicationsFilter=Muta.exe,muta-cli.exe
 RestartApplications=no

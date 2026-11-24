@@ -2,7 +2,7 @@
 
 Muta Converter is a cross-platform Python app for converting files directly from the right-click menu. It supports images, documents, audio, video and Apple iWork files, with a graphical installer, a system tray icon and customizable conversion presets.
 
-Early working version: **0.1.0**. Windows is the first integration target. The conversion core and Qt interface also run on macOS and Linux; their native file-manager integrations are not implemented yet.
+Early working version: **0.1.1**. Windows is the first integration target. The conversion core and Qt interface also run on macOS and Linux; their native file-manager integrations are not implemented yet.
 
 ## Application
 

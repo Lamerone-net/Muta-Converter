@@ -4,6 +4,12 @@ All notable changes are recorded here. Versions follow Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-24
+
+### Fixed
+
+- Use the supplied `icon.ico` for Explorer menus, the system tray, application windows, Windows executables and the installer, avoiding distortion of the rectangular logo.
+
 ## [0.1.0] - 2026-11-24
 
 ### Added

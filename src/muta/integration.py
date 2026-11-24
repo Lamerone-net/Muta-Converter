@@ -10,6 +10,7 @@ import sys
 from .catalog import FAMILIES, family_for, normalize
 from .engines import ConversionError, find_engine, image_supported
 from .settings import Settings
+from .resources import icon_path
 
 PREFIX = r"Software\Classes\SystemFileAssociations"
 OWN_KEY = "MutaConverter"
@@ -128,7 +129,7 @@ def install_menu(settings: Settings) -> None:
         value(root, "MUIVerb", "Muta · Converti in")
         value(root, "SubCommands", "")
         value(root, "MultiSelectModel", "Single")
-        value(root, "Icon", subprocess.list2cmdline([launch_command()[0]]) + ",0")
+        value(root, "Icon", subprocess.list2cmdline([str(icon_path())]))
         for index, (identifier, name, command) in enumerate(items):
             key = f"{root}\\shell\\{index:03}_{identifier}"
             value(key, "MUIVerb", name)

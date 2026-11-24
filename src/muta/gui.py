@@ -24,6 +24,7 @@ from .integration import install_menu, menu_installed, remove_menu, set_autostar
 from .service import Options, convert, targets_for
 from .settings import Preset, Settings, clone_preset, config_dir, load_settings, save_settings
 from .updates import check_latest, download_installer, launch_installer
+from .resources import icon_path
 
 
 class UpdateWorker(QThread):
@@ -44,9 +45,8 @@ class UpdateWorker(QThread):
 
 
 def app_icon() -> QIcon:
-    root = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parents[2]))
-    logo = root / "assets/branding/logo.png"
-    return QIcon(str(logo)) if logo.is_file() else QApplication.style().standardIcon(QStyle.SP_BrowserReload)
+    icon = icon_path()
+    return QIcon(str(icon)) if icon.is_file() else QApplication.style().standardIcon(QStyle.SP_BrowserReload)
 
 
 def about(parent=None):
