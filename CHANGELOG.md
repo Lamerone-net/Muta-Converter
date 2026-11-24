@@ -4,6 +4,14 @@ All notable changes are recorded here. Versions follow Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-11-24
+
+### Changed
+
+- Rename the product to Muta throughout the interface, help, installer, shortcuts, package metadata and release downloads; retain file converter wording in the description.
+- Use `C:\Programs\Muta` for new Windows installations and reuse the existing installation directory during upgrades.
+- Preserve settings and the installer identity, accept both installer naming schemes in the updater, and publish a legacy installer alias for older clients.
+
 ## [0.1.3] - 2026-11-24
 
 ### Added

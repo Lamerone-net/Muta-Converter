@@ -1,12 +1,12 @@
-# Muta Converter
+# Muta
 
-Muta Converter is a cross-platform Python app for converting files directly from the right-click menu. It supports images, documents, audio, video and Apple iWork files, with a graphical installer, a system tray icon and customizable conversion presets.
+Muta is a cross-platform file converter by WoollySheep, built in Python for converting files directly from the right-click menu. It supports images, documents, audio, video and Apple iWork files, with a graphical installer, a system tray icon and customizable conversion presets.
 
-Early working version: **0.1.3**. Windows is the first integration target. The conversion core and Qt interface also run on macOS and Linux; their native file-manager integrations are not implemented yet.
+Early working version: **0.1.4**. Windows is the first integration target. The conversion core and Qt interface also run on macOS and Linux; their native file-manager integrations are not implemented yet.
 
 ## Application
 
-- Graphical Windows installer, defaulting to `C:\Programs\Muta Converter` with administrator rights and an editable destination.
+- Graphical Windows installer, defaulting to `C:\Programs\Muta` with administrator rights and an editable destination.
 - Tray menu: **Preferences**, **About**, separator, **Quit**.
 - English, French, German, Spanish and Italian. The installer language also sets the app and context-menu language.
 - Preferences tabs: **Conversion Presets**, **Application**, **Updates**, **About**.
@@ -45,7 +45,7 @@ The complete catalogue is in `src/muta/catalog.py`. A listed extension is a supp
 ## Repository layout
 
 ```text
-Muta-Converter/
+Muta/
 ├── src/muta/                Python application
 ├── tests/                   Conversion, settings and GUI tests
 ├── scripts/                 Build entry points and UI preview
@@ -98,7 +98,7 @@ On macOS/Linux, use `.venv/bin/python` instead. Install FFmpeg, LibreOffice and 
 
 Use the packaged `muta-cli.exe` for terminal commands; `Muta.exe` is the windowless GUI executable. Each conversion is run in a temporary directory and published only after the engine succeeds. Publication reserves a unique output name exclusively, preventing simultaneous conversions from overwriting each other. An external process reading the output during the final copy may observe a partially written file; a machine/process crash during publication can leave a partial file. Failed conversions handled by Muta clean up their outputs.
 
-Preferences are stored in `%APPDATA%\MutaConverter\settings.json` on Windows, `~/Library/Application Support/MutaConverter` on macOS and `$XDG_CONFIG_HOME/muta-converter` (normally `~/.config/muta-converter`) on Linux. `MUTA_CONFIG_DIR` overrides this for development. Only one tray instance per configuration is allowed. Closing Preferences keeps the tray running when a tray is available. Without a tray, Preferences remains the application's main window.
+Preferences are stored in `%APPDATA%\MutaConverter\settings.json` on Windows, `~/Library/Application Support/MutaConverter` on macOS and `$XDG_CONFIG_HOME/muta-converter` (normally `~/.config/muta-converter`) on Linux. These internal paths retain their original names so upgrades keep existing settings. `MUTA_CONFIG_DIR` overrides this for development. Only one tray instance per configuration is allowed. Closing Preferences keeps the tray running when a tray is available. Without a tray, Preferences remains the application's main window.
 
 ## Build
 
@@ -113,7 +113,7 @@ Preferences are stored in `%APPDATA%\MutaConverter\settings.json` on Windows, `~
 .\.venv\Scripts\python.exe scripts/build.py --installer --iscc "C:\Tools\Inno Setup 6\ISCC.exe"
 ```
 
-The Windows installer is written to `dist/installer/Muta-Converter-<version>-Setup.exe`. Its default destination is `<system drive>\Programs\Muta Converter` (normally `C:\Programs\Muta Converter`), not AppData. The destination page remains visible, and installation requires administrator privileges. This is an x64 build, so it does not use a `(x86)` folder. It offers current-user context-menu registration, optional startup at login and an optional desktop shortcut, then starts the tray app as the original user. Uninstall removes Muta's menu and startup entry for the uninstalling account while retaining user preferences and converted files. This initial installer is unsigned.
+The Windows installer is written to `dist/installer/Muta-<version>-Setup.exe`. Its default destination is `<system drive>\Programs\Muta` (normally `C:\Programs\Muta`), not AppData. The destination page remains visible, and installation requires administrator privileges. This is an x64 build, so it does not use a `(x86)` folder. It offers current-user context-menu registration, optional startup at login and an optional desktop shortcut, then starts the tray app as the original user. Uninstall removes Muta's menu and startup entry for the uninstalling account while retaining user preferences and converted files. This initial installer is unsigned.
 
 Build on each target operating system: PyInstaller does not cross-compile Windows, macOS and Linux apps from a single host. The GitHub Actions workflow prepares native builds. The macOS output includes an `.app`, while Linux produces an application folder. macOS notarization, Linux desktop packages and native Finder/file-manager menus remain future work. Windows packaging currently targets x64.
 
@@ -131,6 +131,8 @@ For each new release:
 Pushing a version tag runs `.github/workflows/release.yml`: check version/tag/changelog consistency, test and build all three platforms, then publish a GitHub Release with the matching changelog section and versioned archives/Windows installer. Publication only happens if every platform build succeeds. Existing tags can be retried using the workflow's manual `tag` input. The initial release uses `v0.1.0` and its existing changelog entry; no version bump is needed for it.
 
 Main-branch pushes and pull requests run build/tests without publishing. Build artefacts are ignored by Git; releases hold downloadable binaries.
+
+The official product name is **Muta**. The repository URL remains `Lamerone-net/Muta-Converter` for update compatibility. Release downloads use `Muta-<version>-…`; an identical `Muta-Converter-<version>-Setup.exe` alias lets versions up to 0.1.3 discover new installers. Windows upgrades preserve the installation directory and installer identity; fresh installations default to `C:\Programs\Muta`.
 
 ## User-controlled updates
 

@@ -52,5 +52,5 @@ jobs:
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             gh release upload "$RELEASE_TAG" packages/* --clobber
           else
-            gh release create "$RELEASE_TAG" packages/* --verify-tag --title "Muta Converter $RELEASE_TAG" --notes-file release-notes.md
+            gh release create "$RELEASE_TAG" packages/* --verify-tag --title "Muta $RELEASE_TAG" --notes-file release-notes.md
           fi

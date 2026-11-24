@@ -16,11 +16,24 @@ TEMP_ROOT.mkdir(exist_ok=True)
 
 class UpdateTests(unittest.TestCase):
     def release_data(self, version='0.2.0', payload=b'installer test bytes'):
-        filename = f'Muta-Converter-{version}-Setup.exe'
+        filename = f'Muta-{version}-Setup.exe'
         return {'tag_name': f'v{version}', 'draft': False, 'prerelease': False,
                 'body': '### Fixed\n- An example.', 'assets': [{'name': filename,
                 'browser_download_url': f'{WEB_URL}/releases/download/v{version}/{filename}',
                 'size': len(payload), 'digest': 'sha256:' + hashlib.sha256(payload).hexdigest()}]}
+
+    def test_new_name_preferred_and_legacy_release_still_supported(self):
+        data = self.release_data()
+        modern = data['assets'][0]
+        legacy = dict(modern, name='Muta-Converter-0.2.0-Setup.exe',
+                      browser_download_url=f'{WEB_URL}/releases/download/v0.2.0/Muta-Converter-0.2.0-Setup.exe')
+        data['assets'] = [legacy]
+        self.assertEqual(parse_release(data, '0.1.0').installer_url, legacy['browser_download_url'])
+        data['assets'] = [legacy, modern]
+        self.assertEqual(parse_release(data, '0.1.0').installer_url, modern['browser_download_url'])
+        modern['browser_download_url'] = 'https://example.com/setup.exe'
+        with self.assertRaises(ConversionError):
+            parse_release(data, '0.1.0')
 
     def test_semantic_comparison_and_stable_releases(self):
         self.assertIsNotNone(parse_release(self.release_data('0.10.0'), '0.9.0'))

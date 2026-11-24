@@ -14,8 +14,8 @@ from .settings import load_settings, save_settings
 
 
 def parser() -> argparse.ArgumentParser:
-    root = argparse.ArgumentParser(prog="muta", description=tr('Muta Converter — conversioni locali'))
-    root.add_argument("--version", action="version", version=f"Muta Converter {__version__}")
+    root = argparse.ArgumentParser(prog="muta", description=tr('Muta — convertitore di file locale'))
+    root.add_argument("--version", action="version", version=f"Muta {__version__}")
     root.add_argument("--tray", action="store_true", help=tr('Avvia nella systray'))
     root.add_argument("--preferences", action="store_true", help=tr('Apri Preferences'))
     sub = root.add_subparsers(dest="command")
@@ -116,7 +116,7 @@ def main(argv=None) -> int:
         if getattr(args, "notify", False) or sys.stderr is None:
             from PySide6.QtWidgets import QApplication, QMessageBox
             app = application()
-            QMessageBox.critical(None, "Muta Converter", str(exc))
+            QMessageBox.critical(None, "Muta", str(exc))
         else:
             print(str(exc), file=sys.stderr)
         return 1

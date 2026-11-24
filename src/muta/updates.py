@@ -45,12 +45,13 @@ def parse_release(data, current_version) -> Release | None:
     version = tag.removeprefix('v')
     if version_tuple(version) <= version_tuple(current_version):
         return None
-    filename = f'Muta-Converter-{version}-Setup.exe'
-    expected = f'{WEB_URL}/releases/download/{tag}/{filename}'
-    asset = next((asset for asset in data.get('assets', []) if asset.get('name') == filename), None)
+    filenames = (f'Muta-{version}-Setup.exe', f'Muta-Converter-{version}-Setup.exe')
+    asset = next((asset for filename in filenames for asset in data.get('assets', [])
+                  if asset.get('name') == filename), None)
     url = digest = None
     size = 0
     if asset:
+        expected = f"{WEB_URL}/releases/download/{tag}/{asset['name']}"
         if asset.get('browser_download_url') != expected:
             raise ConversionError(tr('Il download non appartiene alla release ufficiale di Muta.'))
         checksum = asset.get('digest') or ''
@@ -65,7 +66,7 @@ def parse_release(data, current_version) -> Release | None:
 
 def check_latest(current_version) -> Release | None:
     request = Request(API_URL, headers={'Accept': 'application/vnd.github+json',
-        'User-Agent': 'Muta-Converter', 'X-GitHub-Api-Version': '2022-11-28'})
+        'User-Agent': 'Muta', 'X-GitHub-Api-Version': '2022-11-28'})
     try:
         with urlopen(request, timeout=20) as response:
             payload = response.read(1024 * 1024 + 1)
@@ -91,7 +92,7 @@ def download_installer(release: Release, progress=lambda value: None) -> Path:
     count = 0
     started = time.monotonic()
     try:
-        request = Request(release.installer_url, headers={'User-Agent': 'Muta-Converter'})
+        request = Request(release.installer_url, headers={'User-Agent': 'Muta'})
         with os.fdopen(handle, 'wb') as output, urlopen(request, timeout=30) as response:
             while chunk := response.read(1024 * 1024):
                 if time.monotonic() - started > 600:
@@ -104,7 +105,7 @@ def download_installer(release: Release, progress=lambda value: None) -> Path:
                 progress(round(count * 100 / release.size))
         if count != release.size or digest.hexdigest() != release.sha256:
             raise ConversionError(tr('Verifica SHA-256 fallita. Il file non verrà eseguito.'))
-        destination = folder / f'Muta-Converter-{release.version}-Setup.exe'
+        destination = folder / f'Muta-{release.version}-Setup.exe'
         os.replace(partial, destination)
         return destination
     except (OSError, URLError, TimeoutError) as exc:

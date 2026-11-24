@@ -1,3 +1,3 @@
-"""Muta Converter: local, extensible file conversion."""
+"""Muta: local, extensible file conversion."""
 
-__version__ = "0.1.3"
+__version__ = "0.1.4"

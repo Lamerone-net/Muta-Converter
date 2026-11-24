@@ -51,12 +51,12 @@ def app_icon() -> QIcon:
 
 
 def about(parent=None):
-    message = f"<h3>Muta Converter {__version__}</h3>"
+    message = f"<h3>Muta {__version__}</h3>"
     message += "<p>" + tr("Sviluppato da {0}", "WoollySheep") + "</p>"
     message += "<p>Python · Qt · Pillow · LibreOffice · FFmpeg · 7-Zip</p>"
     message += "<p>" + tr("I file vengono elaborati sul computer. LibreOffice, FFmpeg e 7-Zip sono motori esterni.") + "</p>"
     message += '<p><a href="https://github.com/Lamerone-net/Muta-Converter">GitHub</a></p>'
-    QMessageBox.about(parent, tr('About Muta Converter'), message)
+    QMessageBox.about(parent, tr('About Muta'), message)
 
 
 class ConversionWorker(QThread):
@@ -142,12 +142,12 @@ class Preferences(QDialog):
         self.settings = settings
         self.current = None
         self.update_workers = []
-        self.setWindowTitle(tr('Muta Converter · Preferences'))
+        self.setWindowTitle(tr('Muta · Preferences'))
         self.setWindowIcon(app_icon())
         self.resize(1000, 720)
         self.setMinimumSize(800, 560)
         outer = QVBoxLayout(self)
-        title = QLabel("Muta Converter")
+        title = QLabel("Muta")
         title.setStyleSheet("font-size: 24px; font-weight: 600; margin: 8px 0;")
         outer.addWidget(title)
         self.tabs = QTabWidget()
@@ -157,7 +157,7 @@ class Preferences(QDialog):
         self.make_updates_tab()
         about_tab = QWidget()
         about_layout = QVBoxLayout(about_tab)
-        about_layout.addWidget(QLabel(tr('Muta Converter {0}\n\nConversioni locali · Windows, macOS, Linux', __version__)))
+        about_layout.addWidget(QLabel(tr('Muta {0}\n\nConvertitore di file locale · Windows, macOS, Linux', __version__)))
         about_layout.addWidget(QLabel(tr("Sviluppato da {0}", "WoollySheep")))
         about_layout.addWidget(QLabel(tr("Apple iWork: Pages → documenti, Numbers → fogli, Keynote → presentazioni.\nL'importazione dipende dalla versione del file e da LibreOffice. Nessuna esportazione in iWork.\n\nIl menu contestuale è attualmente disponibile su Windows nel menu classico.\nSu Windows 11: Mostra altre opzioni.\nSelezione multipla: usa il pulsante Converti file.\n\nLe immagini vengono esportate senza metadati. CSV conserva un solo foglio;\ni video conservano la prima traccia video e, se richiesta, la prima traccia audio.")))
         about_layout.addStretch()
@@ -229,7 +229,7 @@ class Preferences(QDialog):
         if release is None:
             self.update_status.setText(tr('Nessun aggiornamento disponibile.'))
             return
-        self.update_status.setText(tr('Disponibile Muta Converter {0}.', release.version))
+        self.update_status.setText(tr('Disponibile Muta {0}.', release.version))
         self.release_notes.setPlainText(release.notes)
         self.showNormal()
         self.tabs.setCurrentIndex(self.tabs.indexOf(self.release_notes.parentWidget()))
@@ -240,7 +240,7 @@ class Preferences(QDialog):
             return
         question = QMessageBox(self)
         question.setWindowTitle(tr('Aggiornamento disponibile'))
-        question.setText(tr("Muta Converter {0} è disponibile.\nScaricare l'installer ({1:.1f} MiB)?", release.version, release.size / 1024 / 1024))
+        question.setText(tr("Muta {0} è disponibile.\nScaricare l'installer ({1:.1f} MiB)?", release.version, release.size / 1024 / 1024))
         question.setDetailedText(release.notes)
         question.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         question.setDefaultButton(QMessageBox.No)
@@ -626,7 +626,7 @@ def run_conversion(files, target, options, output_dir) -> int:
 
 def main(show_preferences=True) -> int:
     app = application()
-    app.setApplicationName("Muta Converter")
+    app.setApplicationName("Muta")
     app.setWindowIcon(app_icon())
     folder = config_dir()
     folder.mkdir(parents=True, exist_ok=True)
@@ -647,7 +647,7 @@ def main(show_preferences=True) -> int:
         tray_available = QSystemTrayIcon.isSystemTrayAvailable()
         app.setQuitOnLastWindowClosed(not tray_available)
         tray = QSystemTrayIcon(app_icon(), app)
-        tray.setToolTip("Muta Converter")
+        tray.setToolTip("Muta")
         menu = QMenu()
         def show():
             window.showNormal()
