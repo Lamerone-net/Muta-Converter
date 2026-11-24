@@ -7,6 +7,7 @@ import unittest
 from unittest.mock import patch
 
 from PySide6.QtWidgets import QApplication
+from PySide6.QtCore import QCoreApplication, QEvent
 from muta.gui import Preferences
 from muta.settings import Settings, load_settings
 from muta.updates import Release
@@ -20,6 +21,12 @@ class GuiTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.app = QApplication.instance() or QApplication([])
+
+    def tearDown(self):
+        for widget in self.app.topLevelWidgets():
+            widget.close()
+            widget.deleteLater()
+        QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
 
     def test_edit_select_save_preset(self):
         with tempfile.TemporaryDirectory(dir=TEMP_ROOT) as folder, patch.dict(os.environ, {'MUTA_CONFIG_DIR': folder}), \

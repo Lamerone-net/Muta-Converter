@@ -7,7 +7,7 @@ name = "muta-converter"
 dynamic = ["version"]
 description = "Conversioni locali dal menu contestuale, per Windows, macOS e Linux"
 requires-python = ">=3.11"
-dependencies = ["Pillow>=11.3,<14", "PySide6-Essentials>=6.8,<7"]
+dependencies = ["Pillow>=11.3,<14", "PySide6-Essentials==6.10.2"]
 
 [project.optional-dependencies]
 heif = ["pillow-heif>=1.0,<2"]
