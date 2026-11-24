@@ -54,7 +54,10 @@ class GuiTests(unittest.TestCase):
             window.language_choice.setCurrentIndex(window.language_choice.findData('en'))
             self.assertTrue(window.save())
             self.assertEqual(load_settings().language, 'en')
-            self.assertEqual(install.call_args.args[0].language, 'en')
+            if os.name == 'nt':
+                self.assertEqual(install.call_args.args[0].language, 'en')
+            else:
+                install.assert_not_called()
             window.close()
 
     def test_edit_select_save_preset(self):
