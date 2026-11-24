@@ -14,6 +14,7 @@ import uuid
 from .catalog import FAMILIES, format_label
 from .engines import ConversionError
 from .service import Options
+from .i18n import LANGUAGES, normalize_language, set_language, tr
 
 _ENGINE_KEYS = {"ffmpeg": "MUTA_FFMPEG", "libreoffice": "MUTA_LIBREOFFICE", "sevenzip": "MUTA_7ZIP"}
 _ORIGINAL_ENGINE_ENV = {key: os.environ.get(key) for key in _ENGINE_KEYS.values()}
@@ -40,14 +41,21 @@ class Preset:
     enabled: bool = True
     options: Options = field(default_factory=Options)
 
+    def display_name(self, language: str) -> str:
+        if self.id == f"{self.family}_{self.target}" and self.name in {
+            format_label(self.target, code) for code in LANGUAGES
+        }:
+            return format_label(self.target, language)
+        return self.name
+
     def validate(self) -> None:
         family = next((f for f in FAMILIES if f.name == self.family), None)
         if not re.fullmatch(r"[a-zA-Z0-9_-]{1,80}", self.id):
-            raise ConversionError("Identificatore preset non valido.")
+            raise ConversionError(tr('Identificatore preset non valido.'))
         if not self.name.strip() or len(self.name) > 80:
-            raise ConversionError("Il nome del preset deve contenere da 1 a 80 caratteri.")
+            raise ConversionError(tr('Il nome del preset deve contenere da 1 a 80 caratteri.'))
         if not family or self.target not in family.outputs or not self.inputs or not set(self.inputs) <= set(family.inputs):
-            raise ConversionError("Formati del preset non validi.")
+            raise ConversionError(tr('Formati del preset non validi.'))
         self.options.validate()
 
 
@@ -65,11 +73,12 @@ class Settings:
     sevenzip: str = ""
     autostart: bool = False
     check_updates_on_start: bool = False
+    language: str = "it"
 
     def preset(self, identifier: str) -> Preset:
         found = next((p for p in self.presets if p.id == identifier), None)
         if not found or not found.enabled:
-            raise ConversionError("Preset assente o disabilitato. Aggiorna il menu dalle preferenze.")
+            raise ConversionError(tr('Preset assente o disabilitato. Aggiorna il menu dalle preferenze.'))
         return found
 
     def apply_engines(self) -> None:
@@ -88,12 +97,15 @@ class Settings:
 def load_settings() -> Settings:
     path = config_dir() / "settings.json"
     if not path.exists():
+        set_language("it")
         return Settings()
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
+        data["language"] = normalize_language(data.get("language", "it"))
+        set_language(data["language"])
         schema = data.pop("version", None)
         if schema not in (1, 2):
-            raise ValueError("Versione preferenze non supportata")
+            raise ValueError(tr('Versione preferenze non supportata'))
         presets = []
         for item in data.pop("presets"):
             item["options"] = Options(**item.get("options", {}))
@@ -107,17 +119,18 @@ def load_settings() -> Settings:
             presets.extend(p for p in default_presets() if p.family == "archive")
         settings = Settings(presets=presets, **data)
         if len({p.id for p in presets}) != len(presets):
-            raise ValueError("Identificatori duplicati")
+            raise ValueError(tr('Identificatori duplicati'))
         return settings
     except (ValueError, TypeError, KeyError, OSError, ConversionError) as exc:
-        raise ConversionError(f"Preferenze non leggibili: {path}\n{exc}") from exc
+        raise ConversionError(tr('Preferenze non leggibili: {0}\n{1}', path, exc)) from exc
 
 
 def save_settings(settings: Settings) -> None:
+    settings.language = normalize_language(settings.language)
     for preset in settings.presets:
         preset.validate()
     if len({p.id for p in settings.presets}) != len(settings.presets):
-        raise ConversionError("Identificatori preset duplicati.")
+        raise ConversionError(tr('Identificatori preset duplicati.'))
     directory = config_dir()
     directory.mkdir(parents=True, exist_ok=True)
     handle, temporary = tempfile.mkstemp(prefix="settings-", suffix=".json", dir=directory)
@@ -132,5 +145,5 @@ def save_settings(settings: Settings) -> None:
 
 
 def clone_preset(preset: Preset) -> Preset:
-    return Preset(uuid.uuid4().hex, preset.name + " (copia)", preset.family,
+    return Preset(uuid.uuid4().hex, preset.name + tr(' (copia)'), preset.family,
                   preset.target, list(preset.inputs), preset.enabled, preset.options)

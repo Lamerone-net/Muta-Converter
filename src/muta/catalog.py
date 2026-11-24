@@ -1,6 +1,7 @@
 """Explicit format families: never offer arbitrary cross-family conversion."""
 
 from dataclasses import dataclass
+from .i18n import tr
 
 
 @dataclass(frozen=True)
@@ -56,8 +57,8 @@ FORMAT_NAMES = {
 }
 
 
-def format_label(target: str) -> str:
-    return f"{target.upper()} - {FORMAT_NAMES[target]}"
+def format_label(target: str, language: str = "it") -> str:
+    return f"{target.upper()} - {tr(FORMAT_NAMES[target], language=language)}"
 
 
 def normalize(extension: str) -> str:

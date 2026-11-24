@@ -1,6 +1,7 @@
 """Adapters for Pillow, LibreOffice and FFmpeg. No command shell involved."""
 
 from __future__ import annotations
+from .i18n import tr
 
 import os
 import json
@@ -55,7 +56,7 @@ def diagnostics() -> dict[str, str | None]:
     return {"pillow": __version__, "libreoffice": find_engine("libreoffice"),
             "ffmpeg": find_engine("ffmpeg"),
             "7zip": find_engine("sevenzip"),
-            "heif": "disponibile" if pillow_heif else None}
+            "heif": tr('disponibile') if pillow_heif else None}
 
 
 def image_supported(source_ext: str, target: str) -> bool:
@@ -71,8 +72,7 @@ IMAGE_FORMATS = {"jpg": "JPEG", "png": "PNG", "webp": "WEBP", "avif": "AVIF",
 def convert_image(source: Path, destination: Path, target: str, settings) -> None:
     with Image.open(source) as original:
         if getattr(original, "n_frames", 1) > 1 and not settings.first_frame:
-            raise ConversionError("Il file contiene più fotogrammi o pagine. Abilita esplicitamente "
-                                  "'Solo prima pagina/fotogramma' oppure usa un altro convertitore.")
+            raise ConversionError(tr("Il file contiene più fotogrammi o pagine. Abilita esplicitamente 'Solo prima pagina/fotogramma' oppure usa un altro convertitore."))
         frame = ImageOps.exif_transpose(original)
         if settings.scale != 100:
             frame = frame.resize((max(1, round(frame.width * settings.scale / 100)),
@@ -118,12 +118,12 @@ def run_process(command: list[str], timeout: int, cwd: Path | None = None) -> st
                                 text=True, encoding="utf-8", errors="replace", timeout=timeout,
                                 creationflags=flags, check=False, cwd=cwd)
     except subprocess.TimeoutExpired as exc:
-        raise ConversionError(f"Tempo massimo superato ({timeout} secondi).") from exc
+        raise ConversionError(tr('Tempo massimo superato ({0} secondi).', timeout)) from exc
     except OSError as exc:
-        raise ConversionError(f"Impossibile avviare il motore: {exc}") from exc
+        raise ConversionError(tr('Impossibile avviare il motore: {0}', exc)) from exc
     if result.returncode:
         details = (result.stderr or result.stdout).strip()[-1800:]
-        raise ConversionError(f"Il motore ha restituito un errore ({result.returncode}).\n{details}")
+        raise ConversionError(tr('Il motore ha restituito un errore ({0}).\n{1}', result.returncode, details))
     return result.stdout
 
 
@@ -148,8 +148,7 @@ def convert_office(source: Path, destination: Path, target: str, family: Family,
                      "--outdir", str(out), str(source)], settings.timeout)
         converted = out / f"{source.stem}.{target}"
         if not converted.is_file() or converted.stat().st_size == 0:
-            raise ConversionError("LibreOffice non ha prodotto un file. Il formato/versione del "
-                                  "documento potrebbe non essere supportato, oppure il file è protetto.")
+            raise ConversionError(tr('LibreOffice non ha prodotto un file. Il formato/versione del documento potrebbe non essere supportato, oppure il file è protetto.'))
         shutil.copyfile(converted, destination)
 
 

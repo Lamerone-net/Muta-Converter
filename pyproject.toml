@@ -25,3 +25,6 @@ include = ["muta*"]
 
 [tool.setuptools.dynamic]
 version = {attr = "muta.__version__"}
+
+[tool.setuptools.package-data]
+muta = ["locales/*.json"]

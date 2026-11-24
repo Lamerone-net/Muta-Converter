@@ -4,6 +4,19 @@ All notable changes are recorded here. Versions follow Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-11-24
+
+### Added
+
+- English, French, German, Spanish and Italian translations for the interface, tray menu, conversion messages and update prompts.
+- Language selection in Preferences, with localized Qt buttons and dialogs.
+
+### Fixed
+
+- Persist the installer language before creating the context menu or starting Muta; English installations now display `Muta · Convert to`.
+- Refresh existing menu entries when the installation or application language changes, while preserving custom preset names and settings.
+- Keep the selected application language when launching an update installer.
+
 ## [0.1.1] - 2026-11-24
 
 ### Fixed

@@ -78,8 +78,10 @@ class UpdateTests(unittest.TestCase):
         release = parse_release(self.release_data(payload=payload), '0.1.0')
         with tempfile.TemporaryDirectory(dir=TEMP_ROOT) as folder, \
                 patch('muta.updates.sys.platform', 'win32'), \
-                patch('muta.updates.os.startfile', create=True) as launch:
+                patch('muta.updates.os.startfile', create=True) as launch, \
+                patch('muta.updates.load_settings') as settings:
+            settings.return_value.language = 'fr'
             path = Path(folder) / 'setup.exe'
             path.write_bytes(payload)
             launch_installer(path, release)
-            launch.assert_called_once_with(str(path), 'runas')
+            launch.assert_called_once_with(str(path), 'runas', '/LANG=french')

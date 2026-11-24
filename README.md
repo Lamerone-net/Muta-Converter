@@ -2,12 +2,13 @@
 
 Muta Converter is a cross-platform Python app for converting files directly from the right-click menu. It supports images, documents, audio, video and Apple iWork files, with a graphical installer, a system tray icon and customizable conversion presets.
 
-Early working version: **0.1.1**. Windows is the first integration target. The conversion core and Qt interface also run on macOS and Linux; their native file-manager integrations are not implemented yet.
+Early working version: **0.1.2**. Windows is the first integration target. The conversion core and Qt interface also run on macOS and Linux; their native file-manager integrations are not implemented yet.
 
 ## Application
 
 - Graphical Windows installer, defaulting to `C:\Programs\Muta Converter` with administrator rights and an editable destination.
 - Tray menu: **Preferences**, **About**, separator, **Quit**.
+- English, French, German, Spanish and Italian. The installer language also sets the app and context-menu language.
 - Preferences tabs: **Conversion Presets**, **Application**, **Updates**, **About**.
 - Create, duplicate, reorder, enable and remove presets. Choose input extensions and output format.
 - Preset labels use `MKV - Matroska`, `PPT - PowerPoint`, etc.; legacy generated labels migrate automatically.
@@ -138,6 +139,14 @@ Main-branch pushes and pull requests run build/tests without publishing. Build a
 After download, a second confirmation asks whether to close Muta and launch the interactive installer. Declining either prompt does not install anything. Muta never silently installs an update. On macOS/Linux, confirmation opens the official release page for manual installation. Downloads are cached in the user configuration's `updates/` directory. A network error or missing checksum leaves the current application unchanged.
 
 SHA-256 verification detects corruption or a file changed after download; it is not publisher code signing. The initial installer remains unsigned. Update metadata and downloads come only from GitHub; conversion files are never uploaded.
+
+## Language
+
+The installer offers English, French, German, Spanish and Italian. It saves the selected language before registering the Explorer menu and launching the tray app. English installs display `Muta · Convert to`; changing the installation language also refreshes existing Muta menu entries.
+
+Change language later in **Preferences → Application → Language**, then save. The installed context menu changes immediately; restart Muta to apply the new language to the open interface and tray. Custom preset names are preserved. Update installers receive the selected language automatically. Existing settings without a language keep Italian until changed in Preferences or by the new installer.
+
+Translation catalogues live in `src/muta/locales/`. Qt button/dialog translations are bundled. Technical format and codec names, external-tool output and release notes supplied by GitHub remain in their original language. For development, `muta configure --language en` persists the language; `scripts/preview_ui.py --all` renders all five interfaces.
 
 ## Verification
 

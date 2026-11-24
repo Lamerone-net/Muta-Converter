@@ -1,6 +1,7 @@
 """Qt preferences, tray application and responsive conversion progress."""
 
 from __future__ import annotations
+from .i18n import tr, set_language, configure_qt, application, LANGUAGES
 
 from dataclasses import asdict
 import hashlib
@@ -50,10 +51,10 @@ def app_icon() -> QIcon:
 
 
 def about(parent=None):
-    QMessageBox.about(parent, "About Muta Converter", f"<h3>Muta Converter {__version__}</h3>"
-        "<p>Convert files, locally.</p><p>Python · Qt · Pillow · LibreOffice · FFmpeg</p>"
-        '<p><a href="https://github.com/Lamerone-net/Muta-Converter">GitHub</a></p>'
-        "<p>I file vengono elaborati sul computer. LibreOffice e FFmpeg sono motori esterni.</p>")
+    message = f"<h3>Muta Converter {__version__}</h3><p>Python · Qt · Pillow · LibreOffice · FFmpeg · 7-Zip</p>"
+    message += "<p>" + tr("I file vengono elaborati sul computer. LibreOffice, FFmpeg e 7-Zip sono motori esterni.") + "</p>"
+    message += '<p><a href="https://github.com/Lamerone-net/Muta-Converter">GitHub</a></p>'
+    QMessageBox.about(parent, tr('About Muta Converter'), message)
 
 
 class ConversionWorker(QThread):
@@ -84,11 +85,11 @@ class ConversionWorker(QThread):
 class ConversionDialog(QDialog):
     def __init__(self, files, target, options, output_dir, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Muta · Conversione")
+        self.setWindowTitle(tr('Muta · Conversione'))
         self.setWindowIcon(app_icon())
         self.resize(680, 360)
         layout = QVBoxLayout(self)
-        self.heading = QLabel(f"Conversione di {len(files)} file in {target.upper()}…")
+        self.heading = QLabel(tr('Conversione di {0} file in {1}…', len(files), target.upper()))
         layout.addWidget(self.heading)
         self.progress = QProgressBar()
         self.progress.setRange(0, len(files))
@@ -96,10 +97,10 @@ class ConversionDialog(QDialog):
         self.log = QTextEdit()
         self.log.setReadOnly(True)
         layout.addWidget(self.log)
-        self.button = QPushButton("Interrompi dopo il file corrente")
+        self.button = QPushButton(tr('Interrompi dopo il file corrente'))
         layout.addWidget(self.button)
         self.worker = ConversionWorker(files, target, options, output_dir)
-        self.worker.result.connect(lambda text, ok: self.log.append(("OK · " if ok else "ERRORE · ") + text.replace("<", "&lt;")))
+        self.worker.result.connect(lambda text, ok: self.log.append(("OK · " if ok else tr('ERRORE · ')) + text.replace("<", "&lt;")))
         self.worker.progress.connect(self.progress.setValue)
         self.worker.finished.connect(self.done_work)
         self.button.clicked.connect(self.stop_or_close)
@@ -108,16 +109,15 @@ class ConversionDialog(QDialog):
     def stop_or_close(self):
         if self.worker.isRunning():
             self.worker.cancelled.set()
-            self.button.setText("Attendo il completamento del file corrente…")
+            self.button.setText(tr('Attendo il completamento del file corrente…'))
             self.button.setEnabled(False)
         else:
             self.accept()
 
     def done_work(self):
         count, errors = self.worker.completed, self.worker.failures
-        self.heading.setText(f"Terminato · {count - errors} riusciti · {errors} errori · "
-                             f"{len(self.worker.files) - count} non elaborati")
-        self.button.setText("Chiudi")
+        self.heading.setText(tr('Terminato · {0} riusciti · {1} errori · {2} non elaborati', count - errors, errors, len(self.worker.files) - count))
+        self.button.setText(tr('Chiudi'))
         self.button.setEnabled(True)
 
     def reject(self):
@@ -134,10 +134,13 @@ class ConversionDialog(QDialog):
 class Preferences(QDialog):
     def __init__(self, settings: Settings):
         super().__init__()
+        set_language(settings.language)
+        configure_qt(QApplication.instance())
+        self.ui_language = settings.language
         self.settings = settings
         self.current = None
         self.update_workers = []
-        self.setWindowTitle("Muta Converter · Preferences")
+        self.setWindowTitle(tr('Muta Converter · Preferences'))
         self.setWindowIcon(app_icon())
         self.resize(1000, 720)
         self.setMinimumSize(800, 560)
@@ -152,26 +155,20 @@ class Preferences(QDialog):
         self.make_updates_tab()
         about_tab = QWidget()
         about_layout = QVBoxLayout(about_tab)
-        about_layout.addWidget(QLabel(f"Muta Converter {__version__}\n\nConversioni locali · Windows, macOS, Linux"))
-        about_layout.addWidget(QLabel("Apple iWork: Pages → documenti, Numbers → fogli, Keynote → presentazioni.\n"
-            "L'importazione dipende dalla versione del file e da LibreOffice. Nessuna esportazione in iWork.\n\n"
-            "Il menu contestuale è attualmente disponibile su Windows nel menu classico.\n"
-            "Su Windows 11: Mostra altre opzioni.\n"
-            "Selezione multipla: usa il pulsante Converti file.\n\n"
-            "Le immagini vengono esportate senza metadati. CSV conserva un solo foglio;\n"
-            "i video conservano la prima traccia video e, se richiesta, la prima traccia audio."))
+        about_layout.addWidget(QLabel(tr('Muta Converter {0}\n\nConversioni locali · Windows, macOS, Linux', __version__)))
+        about_layout.addWidget(QLabel(tr("Apple iWork: Pages → documenti, Numbers → fogli, Keynote → presentazioni.\nL'importazione dipende dalla versione del file e da LibreOffice. Nessuna esportazione in iWork.\n\nIl menu contestuale è attualmente disponibile su Windows nel menu classico.\nSu Windows 11: Mostra altre opzioni.\nSelezione multipla: usa il pulsante Converti file.\n\nLe immagini vengono esportate senza metadati. CSV conserva un solo foglio;\ni video conservano la prima traccia video e, se richiesta, la prima traccia audio.")))
         about_layout.addStretch()
-        self.tabs.addTab(about_tab, "About")
-        self.status = QLabel("Premi Salva per applicare le modifiche.")
+        self.tabs.addTab(about_tab, tr('About'))
+        self.status = QLabel(tr('Premi Salva per applicare le modifiche.'))
         outer.addWidget(self.status)
         buttons = QHBoxLayout()
-        convert_button = QPushButton("Converti file…")
+        convert_button = QPushButton(tr('Converti file…'))
         convert_button.clicked.connect(self.choose_conversion)
         buttons.addWidget(convert_button)
         buttons.addStretch()
-        save = QPushButton("Salva")
+        save = QPushButton(tr('Salva'))
         save.clicked.connect(self.save)
-        close = QPushButton("Chiudi")
+        close = QPushButton(tr('Chiudi'))
         close.clicked.connect(self.close)
         buttons.addWidget(close)
         buttons.addWidget(save)
@@ -181,14 +178,14 @@ class Preferences(QDialog):
     def make_updates_tab(self):
         tab = QWidget()
         layout = QVBoxLayout(tab)
-        layout.addWidget(QLabel(f"Versione installata: {__version__}"))
-        self.auto_updates = QCheckBox("Controlla nuove versioni all'avvio (solo controllo, nessun download automatico)")
+        layout.addWidget(QLabel(tr('Versione installata: {0}', __version__)))
+        self.auto_updates = QCheckBox(tr("Controlla nuove versioni all'avvio (solo controllo, nessun download automatico)"))
         self.auto_updates.setChecked(self.settings.check_updates_on_start)
         layout.addWidget(self.auto_updates)
-        self.check_button = QPushButton("Controlla aggiornamenti")
+        self.check_button = QPushButton(tr('Controlla aggiornamenti'))
         self.check_button.clicked.connect(lambda: self.check_updates(False))
         layout.addWidget(self.check_button)
-        self.update_status = QLabel("Gli aggiornamenti provengono dalle GitHub Releases ufficiali di Muta.")
+        self.update_status = QLabel(tr('Gli aggiornamenti provengono dalle GitHub Releases ufficiali di Muta.'))
         self.update_status.setWordWrap(True)
         layout.addWidget(self.update_status)
         self.update_progress = QProgressBar()
@@ -197,11 +194,10 @@ class Preferences(QDialog):
         layout.addWidget(self.update_progress)
         self.release_notes = QTextEdit()
         self.release_notes.setReadOnly(True)
-        self.release_notes.setPlaceholderText("Il changelog della nuova versione apparirà qui.")
+        self.release_notes.setPlaceholderText(tr('Il changelog della nuova versione apparirà qui.'))
         layout.addWidget(self.release_notes)
-        layout.addWidget(QLabel("Download e avvio dell'installer richiedono due conferme separate.\n"
-                               "L'installer viene verificato tramite SHA-256. L'installazione guidata resta interattiva."))
-        self.tabs.addTab(tab, "Updates")
+        layout.addWidget(QLabel(tr("Download e avvio dell'installer richiedono due conferme separate.\nL'installer viene verificato tramite SHA-256. L'installazione guidata resta interattiva.")))
+        self.tabs.addTab(tab, tr('Updates'))
 
     def start_update_worker(self, worker, callback):
         self.update_workers.append(worker)
@@ -219,7 +215,7 @@ class Preferences(QDialog):
     def check_updates(self, quiet=False):
         if self.update_workers:
             return
-        self.update_status.setText("Controllo delle release stabili su GitHub…")
+        self.update_status.setText(tr('Controllo delle release stabili su GitHub…'))
         self.start_update_worker(UpdateWorker(), lambda release: self.offer_update(release, quiet))
 
     def update_failed(self, message):
@@ -228,37 +224,37 @@ class Preferences(QDialog):
 
     def offer_update(self, release, quiet):
         if release is None:
-            self.update_status.setText("Nessun aggiornamento disponibile.")
+            self.update_status.setText(tr('Nessun aggiornamento disponibile.'))
             return
-        self.update_status.setText(f"Disponibile Muta Converter {release.version}.")
+        self.update_status.setText(tr('Disponibile Muta Converter {0}.', release.version))
         self.release_notes.setPlainText(release.notes)
         self.showNormal()
         self.tabs.setCurrentIndex(self.tabs.indexOf(self.release_notes.parentWidget()))
         if sys.platform != 'win32' or not release.installer_url:
-            answer = QMessageBox.question(self, "Aggiornamento disponibile", "Aprire la pagina ufficiale per scaricare la nuova versione?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            answer = QMessageBox.question(self, tr('Aggiornamento disponibile'), tr('Aprire la pagina ufficiale per scaricare la nuova versione?'), QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
             if answer == QMessageBox.Yes:
                 QDesktopServices.openUrl(QUrl(release.page_url))
             return
         question = QMessageBox(self)
-        question.setWindowTitle("Aggiornamento disponibile")
-        question.setText(f"Muta Converter {release.version} è disponibile.\nScaricare l'installer ({release.size / 1024 / 1024:.1f} MiB)?")
+        question.setWindowTitle(tr('Aggiornamento disponibile'))
+        question.setText(tr("Muta Converter {0} è disponibile.\nScaricare l'installer ({1:.1f} MiB)?", release.version, release.size / 1024 / 1024))
         question.setDetailedText(release.notes)
         question.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         question.setDefaultButton(QMessageBox.No)
         if question.exec() == QMessageBox.Yes:
-            self.update_status.setText("Download e verifica SHA-256…")
+            self.update_status.setText(tr('Download e verifica SHA-256…'))
             self.update_progress.setValue(0)
             self.update_progress.show()
             self.start_update_worker(UpdateWorker(release), lambda path: self.offer_install(path, release))
 
     def offer_install(self, path, release):
         self.update_progress.hide()
-        self.update_status.setText(f"Installer {release.version} scaricato e verificato.")
+        self.update_status.setText(tr('Installer {0} scaricato e verificato.', release.version))
         if any(isinstance(widget, ConversionDialog) and widget.worker.isRunning()
                for widget in QApplication.topLevelWidgets()):
-            QMessageBox.information(self, "Aggiornamento pronto", "Termina le conversioni prima di installare. Puoi ripetere il controllo aggiornamenti in seguito.")
+            QMessageBox.information(self, tr('Aggiornamento pronto'), tr('Termina le conversioni prima di installare. Puoi ripetere il controllo aggiornamenti in seguito.'))
             return
-        answer = QMessageBox.question(self, "Installa aggiornamento", "Avviare l'installer adesso?\nWindows richiederà l'autorizzazione amministratore.\nMuta verrà chiuso; l'installazione guidata chiederà come procedere.", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        answer = QMessageBox.question(self, tr('Installa aggiornamento'), tr("Avviare l'installer adesso?\nWindows richiederà l'autorizzazione amministratore.\nMuta verrà chiuso; l'installazione guidata chiederà come procedere."), QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if answer == QMessageBox.Yes:
             try:
                 launch_installer(path, release)
@@ -275,7 +271,7 @@ class Preferences(QDialog):
 
     def closeEvent(self, event):
         if any(worker.isRunning() for worker in self.update_workers):
-            self.update_status.setText("Attendi il completamento del controllo o download in corso.")
+            self.update_status.setText(tr('Attendi il completamento del controllo o download in corso.'))
             event.ignore()
         else:
             event.accept()
@@ -292,7 +288,7 @@ class Preferences(QDialog):
         self.presets.currentRowChanged.connect(self.select_preset)
         left_layout.addWidget(self.presets)
         actions = QHBoxLayout()
-        for title, callback in (("+", self.add_preset), ("Duplica", self.duplicate_preset),
+        for title, callback in (("+", self.add_preset), (tr('Duplica'), self.duplicate_preset),
                                 ("−", self.delete_preset), ("↑", lambda: self.move_preset(-1)),
                                 ("↓", lambda: self.move_preset(1))):
             button = QPushButton(title)
@@ -307,26 +303,26 @@ class Preferences(QDialog):
         self.form.setRowWrapPolicy(QFormLayout.WrapLongRows)
         self.form.setFieldGrowthPolicy(QFormLayout.AllNonFixedFieldsGrow)
         self.name = QLineEdit()
-        self.enabled = QCheckBox("Mostra nel menu contestuale")
+        self.enabled = QCheckBox(tr('Mostra nel menu contestuale'))
         self.target = QComboBox()
         self.target.currentTextChanged.connect(self.update_fields)
         self.inputs = QListWidget()
         self.inputs.setMaximumHeight(110)
-        self.form.addRow("Nome preset", self.name)
+        self.form.addRow(tr('Nome preset'), self.name)
         self.form.addRow("", self.enabled)
-        self.form.addRow("Formato di uscita", self.target)
-        self.form.addRow("Formati di ingresso", self.inputs)
+        self.form.addRow(tr('Formato di uscita'), self.target)
+        self.form.addRow(tr('Formati di ingresso'), self.inputs)
         self.fields = {}
         specifications = [
-            ("quality", "Qualità immagine (JPG/WebP/AVIF)", 1, 100),
-            ("scale", "Dimensioni (%)", 1, 200),
-            ("video_crf", "Qualità video CRF (minore = migliore)", 0, 51),
-            ("audio_bitrate", "Bitrate AAC/Opus (kbps)", 32, 320),
-            ("pdf_quality", "Qualità immagini PDF", 1, 100),
-            ("timeout", "Timeout motore esterno (secondi)", 1, 86400),
-            ("archive_level", "Livello compressione (0–9)", 0, 9),
-            ("archive_limit_mb", "Limite estrazione (MiB)", 1, 1048576),
-            ("archive_max_files", "Limite elementi nell'archivio", 1, 1000000),
+            ("quality", tr('Qualità immagine (JPG/WebP/AVIF)'), 1, 100),
+            ("scale", tr('Dimensioni (%)'), 1, 200),
+            ("video_crf", tr('Qualità video CRF (minore = migliore)'), 0, 51),
+            ("audio_bitrate", tr('Bitrate AAC/Opus (kbps)'), 32, 320),
+            ("pdf_quality", tr('Qualità immagini PDF'), 1, 100),
+            ("timeout", tr('Timeout motore esterno (secondi)'), 1, 86400),
+            ("archive_level", tr('Livello compressione (0–9)'), 0, 9),
+            ("archive_limit_mb", tr('Limite estrazione (MiB)'), 1, 1048576),
+            ("archive_max_files", tr("Limite elementi nell'archivio"), 1, 1000000),
         ]
         for key, label, low, high in specifications:
             widget = QSpinBox()
@@ -334,22 +330,22 @@ class Preferences(QDialog):
             self.fields[key] = widget
             self.form.addRow(label, widget)
         for key, label, choices in (
-            ("rotation", "Rotazione oraria", ["0", "90", "180", "270"]),
-            ("video_preset", "Velocità encoder H.264", ["ultrafast", "fast", "medium", "slow", "veryslow"]),
-            ("csv_separator", "Separatore CSV", [",", ";", "Tab"]),
+            ("rotation", tr('Rotazione oraria'), ["0", "90", "180", "270"]),
+            ("video_preset", tr('Velocità encoder H.264'), ["ultrafast", "fast", "medium", "slow", "veryslow"]),
+            ("csv_separator", tr('Separatore CSV'), [",", ";", "Tab"]),
         ):
             widget = QComboBox()
             widget.addItems(choices)
             self.fields[key] = widget
             self.form.addRow(label, widget)
-        for key, label in (("background", "Sfondo per formati senza trasparenza"),
-                            ("name_template", "Nome file: {name}, {format}")):
+        for key, label in (("background", tr('Sfondo per formati senza trasparenza')),
+                            ("name_template", tr('Nome file: {name}, {format}'))):
             widget = QLineEdit()
             self.fields[key] = widget
             self.form.addRow(label, widget)
-        for key, label in (("first_frame", "Solo prima pagina/fotogramma (scarta gli altri)"),
-                            ("include_audio", "Includi la prima traccia audio"),
-                            ("pdf_lossless", "Immagini PDF senza perdita")):
+        for key, label in (("first_frame", tr('Solo prima pagina/fotogramma (scarta gli altri)')),
+                            ("include_audio", tr('Includi la prima traccia audio')),
+                            ("pdf_lossless", tr('Immagini PDF senza perdita'))):
             widget = QCheckBox(label)
             self.fields[key] = widget
             self.form.addRow(widget)
@@ -359,53 +355,54 @@ class Preferences(QDialog):
         scroll.setWidget(form_widget)
         splitter.addWidget(scroll)
         splitter.setSizes([280, 650])
-        self.tabs.addTab(tab, "Conversion Presets")
+        self.tabs.addTab(tab, tr('Conversion Presets'))
 
     def make_application_tab(self):
         tab = QWidget()
         layout = QFormLayout(tab)
+        layout.setRowWrapPolicy(QFormLayout.WrapLongRows)
+        self.language_choice = QComboBox()
+        for code, label in LANGUAGES.items():
+            self.language_choice.addItem(label, code)
+        self.language_choice.setCurrentIndex(self.language_choice.findData(self.settings.language))
+        layout.addRow(tr("Lingua"), self.language_choice)
         self.app_fields = {}
-        for key, label in (("output_dir", "Cartella output (vuota = accanto all'originale)"),
-                            ("libreoffice", "LibreOffice (vuoto = rilevamento automatico)"),
-                            ("ffmpeg", "FFmpeg (vuoto = rilevamento automatico)"),
-                            ("sevenzip", "7-Zip (vuoto = rilevamento automatico)")):
+        for key, label in (("output_dir", tr("Cartella output (vuota = accanto all'originale)")),
+                            ("libreoffice", tr('LibreOffice (vuoto = rilevamento automatico)')),
+                            ("ffmpeg", tr('FFmpeg (vuoto = rilevamento automatico)')),
+                            ("sevenzip", tr('7-Zip (vuoto = rilevamento automatico)'))):
             row = QWidget()
             box = QHBoxLayout(row)
             box.setContentsMargins(0, 0, 0, 0)
             field = QLineEdit(getattr(self.settings, key))
             self.app_fields[key] = field
-            button = QPushButton("Sfoglia…")
+            button = QPushButton(tr('Sfoglia…'))
             button.clicked.connect(lambda checked=False, key=key: self.browse_path(key))
             box.addWidget(field)
             box.addWidget(button)
             layout.addRow(label, row)
-        self.autostart = QCheckBox("Avvia Muta nella systray all'accesso a Windows")
+        self.autostart = QCheckBox(tr("Avvia Muta nella systray all'accesso a Windows"))
         self.autostart.setChecked(self.settings.autostart)
         self.autostart.setEnabled(os.name == "nt")
         layout.addRow(self.autostart)
         menu_buttons = QWidget()
         buttons = QHBoxLayout(menu_buttons)
-        for label, callback in (("Installa / aggiorna menu", self.install_shell), ("Rimuovi menu", self.remove_shell)):
+        for label, callback in ((tr('Installa / aggiorna menu'), self.install_shell), (tr('Rimuovi menu'), self.remove_shell)):
             button = QPushButton(label)
             button.setEnabled(os.name == "nt")
             button.clicked.connect(callback)
             buttons.addWidget(button)
-        layout.addRow("Esplora file", menu_buttons)
+        layout.addRow(tr('Esplora file'), menu_buttons)
         self.engine_status = QLabel()
         self.engine_status.setWordWrap(True)
-        layout.addRow("Motori rilevati", self.engine_status)
-        refresh = QPushButton("Ricontrolla motori")
+        layout.addRow(tr('Motori rilevati'), self.engine_status)
+        refresh = QPushButton(tr('Ricontrolla motori'))
         refresh.clicked.connect(self.refresh_engines)
         layout.addRow(refresh)
-        info = QLabel("Gli originali non vengono sovrascritti. I nomi già esistenti ricevono un numero.\n"
-                      "HEIC/HEIF richiede pillow-heif. I codec audio/video dipendono dalla build FFmpeg.\n"
-                      "Installa LibreOffice per abilitare i documenti, inclusa l'importazione iWork.\n"
-                      "Installa 7-Zip per ZIP, TGZ, 7Z e altri archivi; ARJ/RAR sono solo in ingresso.\n"
-                      "Dopo l'installazione di un motore, aggiorna il menu contestuale.\n"
-                      "Not mutable indica l'assenza di preset disponibili; il menu Windows usa lo stile standard.")
+        info = QLabel(tr("Gli originali non vengono sovrascritti. I nomi già esistenti ricevono un numero.\nHEIC/HEIF richiede pillow-heif. I codec audio/video dipendono dalla build FFmpeg.\nInstalla LibreOffice per abilitare i documenti, inclusa l'importazione iWork.\nInstalla 7-Zip per ZIP, TGZ, 7Z e altri archivi; ARJ/RAR sono solo in ingresso.\nDopo l'installazione di un motore, aggiorna il menu contestuale.\nNot mutable indica l'assenza di preset disponibili; il menu Windows usa lo stile standard."))
         info.setWordWrap(True)
         layout.addRow(info)
-        self.tabs.addTab(tab, "Application")
+        self.tabs.addTab(tab, tr('Application'))
         self.refresh_engines()
 
     def refresh_list(self, index=0):
@@ -414,7 +411,7 @@ class Preferences(QDialog):
         self.presets.clear()
         for preset in self.settings.presets:
             family = next(f for f in FAMILIES if f.name == preset.family)
-            self.presets.addItem(f"{preset.name}  ·  {family.label}")
+            self.presets.addItem(f"{preset.display_name(self.ui_language)}  ·  {tr(family.label)}")
         self.presets.blockSignals(False)
         if self.settings.presets:
             self.presets.setCurrentRow(min(index, len(self.settings.presets) - 1))
@@ -452,7 +449,7 @@ class Preferences(QDialog):
         self.current = index
         preset = self.settings.presets[index]
         family = next(f for f in FAMILIES if f.name == preset.family)
-        self.name.setText(preset.name)
+        self.name.setText(preset.display_name(self.ui_language))
         self.enabled.setChecked(preset.enabled)
         self.target.blockSignals(True)
         self.target.clear()
@@ -508,22 +505,22 @@ class Preferences(QDialog):
                 visible.add("archive_level")
         for key, widget in self.fields.items():
             self.form.setRowVisible(widget, key in visible)
-        notes = {"image": "L'orientamento EXIF viene applicato; i metadati vengono rimossi. Le animazioni e le immagini multipagina richiedono la scelta esplicita del primo fotogramma.",
-                 "document": "Pages → DOC/DOCX/ODT/PDF. Compatibilità e impaginazione dipendono dal file e da LibreOffice.",
-                 "spreadsheet": "Numbers → XLS/XLSX/ODS/PDF. CSV esporta un solo foglio e perde formattazione e formule.",
-                 "presentation": "Keynote → PPT/PPTX/ODP/PDF. Alcune versioni di Keynote non sono importabili da LibreOffice.",
-                 "audio": "MP3 usa qualità VBR 2; OGG qualità 5. WAV/AIFF: PCM 16 bit. FLAC: senza perdita.",
-                 "video": "Si convertono la prima traccia video e la prima audio. Sottotitoli e altre tracce non vengono trasferiti.",
-                 "archive": "Si estraggono i file e si crea un nuovo archivio. ARJ/RAR: solo lettura. Password, link, file speciali e percorsi non sicuri sono rifiutati. Permessi e metadati possono cambiare."}
+        notes = {"image": tr("L'orientamento EXIF viene applicato; i metadati vengono rimossi. Le animazioni e le immagini multipagina richiedono la scelta esplicita del primo fotogramma."),
+                 "document": tr('Pages → DOC/DOCX/ODT/PDF. Compatibilità e impaginazione dipendono dal file e da LibreOffice.'),
+                 "spreadsheet": tr('Numbers → XLS/XLSX/ODS/PDF. CSV esporta un solo foglio e perde formattazione e formule.'),
+                 "presentation": tr('Keynote → PPT/PPTX/ODP/PDF. Alcune versioni di Keynote non sono importabili da LibreOffice.'),
+                 "audio": tr('MP3 usa qualità VBR 2; OGG qualità 5. WAV/AIFF: PCM 16 bit. FLAC: senza perdita.'),
+                 "video": tr('Si convertono la prima traccia video e la prima audio. Sottotitoli e altre tracce non vengono trasferiti.'),
+                 "archive": tr('Si estraggono i file e si crea un nuovo archivio. ARJ/RAR: solo lettura. Password, link, file speciali e percorsi non sicuri sono rifiutati. Permessi e metadati possono cambiare.')}
         self.note.setText(notes[family])
 
     def add_preset(self):
         self.store_current()
-        name, ok = QInputDialog.getItem(self, "Nuovo preset", "Tipo di conversione", [f.label for f in FAMILIES], 0, False)
+        name, ok = QInputDialog.getItem(self, tr('Nuovo preset'), tr('Tipo di conversione'), [tr(f.label) for f in FAMILIES], 0, False)
         if ok:
-            family = next(f for f in FAMILIES if f.label == name)
+            family = next(f for f in FAMILIES if tr(f.label) == name)
             import uuid
-            self.settings.presets.append(Preset(uuid.uuid4().hex, "Nuovo preset", family.name, family.outputs[0], list(family.inputs)))
+            self.settings.presets.append(Preset(uuid.uuid4().hex, tr('Nuovo preset'), family.name, family.outputs[0], list(family.inputs)))
             self.refresh_list(len(self.settings.presets) - 1)
 
     def duplicate_preset(self):
@@ -547,13 +544,13 @@ class Preferences(QDialog):
             self.refresh_list(index + direction)
 
     def browse_path(self, key):
-        path = QFileDialog.getExistingDirectory(self, "Cartella di destinazione") if key == "output_dir" else QFileDialog.getOpenFileName(self, "Seleziona eseguibile")[0]
+        path = QFileDialog.getExistingDirectory(self, tr('Cartella di destinazione')) if key == "output_dir" else QFileDialog.getOpenFileName(self, tr('Seleziona eseguibile'))[0]
         if path:
             self.app_fields[key].setText(path)
 
     def refresh_engines(self):
         self.settings.apply_engines()
-        self.engine_status.setText("\n".join(f"{key}: {value or 'non disponibile'}" for key, value in diagnostics().items()))
+        self.engine_status.setText("\n".join(f"{key}: {value or tr('non disponibile')}" for key, value in diagnostics().items()))
 
     def save(self):
         try:
@@ -561,10 +558,11 @@ class Preferences(QDialog):
             for key, field in self.app_fields.items():
                 value = field.text().strip()
                 if key != "output_dir" and value and not Path(value).is_file():
-                    raise ConversionError(f"Eseguibile non trovato: {value}")
+                    raise ConversionError(tr('Eseguibile non trovato: {0}', value))
                 setattr(self.settings, key, value)
             self.settings.autostart = self.autostart.isChecked()
             self.settings.check_updates_on_start = self.auto_updates.isChecked()
+            self.settings.language = self.language_choice.currentData()
             save_settings(self.settings)
             self.settings.apply_engines()
             if os.name == "nt":
@@ -572,42 +570,43 @@ class Preferences(QDialog):
                 if menu_installed():
                     install_menu(self.settings)
             self.refresh_engines()
-            self.status.setText("Preferenze salvate.")
+            self.status.setText(tr('Lingua salvata. Riavvia Muta per aggiornare l’interfaccia; il menu contestuale è già aggiornato.')
+                                if self.settings.language != self.ui_language else tr('Preferenze salvate.'))
             self.refresh_list(self.current or 0)
             return True
         except (OSError, ConversionError) as exc:
-            QMessageBox.warning(self, "Preferenze", str(exc))
+            QMessageBox.warning(self, tr('Preferenze'), str(exc))
             return False
 
     def install_shell(self):
         if self.save():
             try:
                 install_menu(self.settings)
-                self.status.setText("Menu contestuale aggiornato. Windows 11: Mostra altre opzioni.")
+                self.status.setText(tr('Menu contestuale aggiornato. Windows 11: Mostra altre opzioni.'))
             except (OSError, ConversionError) as exc:
-                QMessageBox.warning(self, "Menu contestuale", str(exc))
+                QMessageBox.warning(self, tr('Menu contestuale'), str(exc))
 
     def remove_shell(self):
         try:
             remove_menu()
-            self.status.setText("Menu contestuale rimosso.")
+            self.status.setText(tr('Menu contestuale rimosso.'))
         except OSError as exc:
-            QMessageBox.warning(self, "Menu contestuale", str(exc))
+            QMessageBox.warning(self, tr('Menu contestuale'), str(exc))
 
     def choose_conversion(self):
         if not self.save():
             return
-        names, _ = QFileDialog.getOpenFileNames(self, "Seleziona file da convertire")
+        names, _ = QFileDialog.getOpenFileNames(self, tr('Seleziona file da convertire'))
         files = [Path(name) for name in names]
         if not files:
             return
         presets = [p for p in self.settings.presets if p.enabled and all(
             f.suffix.lower().lstrip(".") in p.inputs and p.target in targets_for(f) for f in files)]
         if not presets:
-            QMessageBox.information(self, "Not mutable", "Nessun preset disponibile per tutti i file selezionati. Controlla i motori in Application.")
+            QMessageBox.information(self, tr('Not mutable'), tr('Nessun preset disponibile per tutti i file selezionati. Controlla i motori in Application.'))
             return
-        labels = [f"{i + 1}. {p.name} ({p.target.upper()})" for i, p in enumerate(presets)]
-        label, ok = QInputDialog.getItem(self, "Converti in", "Preset", labels, 0, False)
+        labels = [f"{i + 1}. {p.display_name(self.ui_language)} ({p.target.upper()})" for i, p in enumerate(presets)]
+        label, ok = QInputDialog.getItem(self, tr('Converti in'), tr('Preset'), labels, 0, False)
         if ok:
             preset = presets[labels.index(label)]
             output = Path(self.settings.output_dir) if self.settings.output_dir else None
@@ -616,14 +615,14 @@ class Preferences(QDialog):
 
 
 def run_conversion(files, target, options, output_dir) -> int:
-    app = QApplication.instance() or QApplication([])
+    app = application()
     dialog = ConversionDialog(files, target, options, output_dir)
     dialog.exec()
     return 1 if dialog.worker.failures or dialog.worker.completed != len(files) else 0
 
 
 def main(show_preferences=True) -> int:
-    app = QApplication.instance() or QApplication([])
+    app = application()
     app.setApplicationName("Muta Converter")
     app.setWindowIcon(app_icon())
     folder = config_dir()
@@ -651,19 +650,19 @@ def main(show_preferences=True) -> int:
             window.showNormal()
             window.raise_()
             window.activateWindow()
-        menu.addAction("Preferences", show)
-        menu.addAction("About", lambda: about(window))
+        menu.addAction(tr('Preferences'), show)
+        menu.addAction(tr('About'), lambda: about(window))
         menu.addSeparator()
         def quit_app():
             if window.update_workers:
-                QMessageBox.information(window, "Muta", "Attendi il completamento del controllo o download in corso.")
+                QMessageBox.information(window, "Muta", tr('Attendi il completamento del controllo o download in corso.'))
                 return
             if any(isinstance(widget, ConversionDialog) and widget.worker.isRunning()
                    for widget in app.topLevelWidgets()):
-                QMessageBox.information(window, "Muta", "Attendi la conversione in corso oppure interrompi la coda dalla finestra di avanzamento.")
+                QMessageBox.information(window, "Muta", tr('Attendi la conversione in corso oppure interrompi la coda dalla finestra di avanzamento.'))
                 return
             app.quit()
-        menu.addAction("Quit", quit_app)
+        menu.addAction(tr('Quit'), quit_app)
         tray.setContextMenu(menu)
         tray.activated.connect(lambda reason: show() if reason == QSystemTrayIcon.DoubleClick else None)
         tray.show()

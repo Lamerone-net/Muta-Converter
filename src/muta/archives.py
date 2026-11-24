@@ -1,4 +1,6 @@
 """7-Zip archive conversion with isolated extraction and checked member paths."""
+
+from .i18n import tr
 from pathlib import Path, PurePosixPath
 import re
 import tempfile
@@ -18,40 +20,40 @@ def check_members(listing: str, options) -> None:
             key, value = line.split(' = ', 1)
             current[key] = value
     if len(entries) > options.archive_max_files:
-        raise ConversionError('L’archivio supera il limite di elementi configurato.')
+        raise ConversionError(tr('L’archivio supera il limite di elementi configurato.'))
     total = 0
     seen = set()
     for entry in entries:
         name = entry['Path'].replace('\\', '/')
         path = PurePosixPath(name)
         if path.is_absolute() or '..' in path.parts or ':' in name or '\x00' in name:
-            raise ConversionError(f'Percorso non sicuro nell’archivio: {name}')
+            raise ConversionError(tr('Percorso non sicuro nell’archivio: {0}', name))
         if any(part.rstrip(' .') != part for part in path.parts):
-            raise ConversionError(f'Percorso ambiguo nell’archivio: {name}')
+            raise ConversionError(tr('Percorso ambiguo nell’archivio: {0}', name))
         if any(part.split('.')[0].upper() in {'CON', 'PRN', 'AUX', 'NUL',
                *[f'COM{i}' for i in range(1, 10)], *[f'LPT{i}' for i in range(1, 10)]} for part in path.parts):
-            raise ConversionError(f'Nome riservato nell’archivio: {name}')
+            raise ConversionError(tr('Nome riservato nell’archivio: {0}', name))
         if name in ('.', './'):
             continue
         key = str(path).casefold()
         if key in seen:
-            raise ConversionError(f'Percorsi duplicati nell’archivio: {name}')
+            raise ConversionError(tr('Percorsi duplicati nell’archivio: {0}', name))
         seen.add(key)
         attributes = entry.get('Attributes', '') + ' ' + entry.get('Mode', '')
         if (entry.get('Symbolic Link') or entry.get('Hard Link') or entry.get('Alternate Stream') == '+'
                 or re.search(r'(^|\s)[lcbps][rwxstST-]{9}', attributes)):
-            raise ConversionError('Archivi con collegamenti, flussi alternativi o file speciali non supportati.')
+            raise ConversionError(tr('Archivi con collegamenti, flussi alternativi o file speciali non supportati.'))
         if entry.get('Encrypted') == '+':
-            raise ConversionError('Gli archivi protetti da password non sono ancora supportati.')
+            raise ConversionError(tr('Gli archivi protetti da password non sono ancora supportati.'))
         try:
             size = int(entry.get('Size', '0') or '0')
         except ValueError as exc:
-            raise ConversionError('Dimensione di un elemento non determinabile.') from exc
+            raise ConversionError(tr('Dimensione di un elemento non determinabile.')) from exc
         if size < 0:
-            raise ConversionError('Dimensione non valida nell’archivio.')
+            raise ConversionError(tr('Dimensione non valida nell’archivio.'))
         total += size
     if total > options.archive_limit_mb * 1024 * 1024:
-        raise ConversionError('L’archivio supera il limite di dimensione estratta configurato.')
+        raise ConversionError(tr('L’archivio supera il limite di dimensione estratta configurato.'))
 
 
 def extract(source, directory, executable, options):
@@ -66,15 +68,15 @@ def extract(source, directory, executable, options):
     for path in directory.rglob('*'):
         count += 1
         if path.is_symlink() or (hasattr(path, 'is_junction') and path.is_junction()):
-            raise ConversionError('Collegamento inatteso nell’archivio estratto.')
+            raise ConversionError(tr('Collegamento inatteso nell’archivio estratto.'))
         if not path.resolve().is_relative_to(directory.resolve()):
-            raise ConversionError('Percorso estratto esterno alla cartella temporanea.')
+            raise ConversionError(tr('Percorso estratto esterno alla cartella temporanea.'))
         if path.is_file():
             total += path.stat().st_size
         elif not path.is_dir():
-            raise ConversionError('File speciale non supportato.')
+            raise ConversionError(tr('File speciale non supportato.'))
     if total > options.archive_limit_mb * 1024 * 1024 or count > options.archive_max_files:
-        raise ConversionError('L’archivio estratto supera i limiti configurati.')
+        raise ConversionError(tr('L’archivio estratto supera i limiti configurati.'))
 
 
 def convert_archive(source, destination, target, executable, options):

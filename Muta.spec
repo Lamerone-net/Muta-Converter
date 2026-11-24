@@ -2,7 +2,7 @@
 from pathlib import Path
 import sys
 import re
-from PyInstaller.utils.hooks import copy_metadata
+from PyInstaller.utils.hooks import copy_metadata, collect_data_files
 
 root = Path(SPECPATH)
 version = re.search(r'__version__ = "([^"]+)"', (root / 'src/muta/__init__.py').read_text()).group(1)
@@ -15,7 +15,9 @@ analysis = Analysis(
     binaries=[],
     datas=[(str(root / 'assets/branding/logo.png'), 'assets/branding'),
            (str(root / 'assets/branding/icon.ico'), 'assets/branding'),
-           (str(root / 'docs/third-party-notices.md'), '.'), *metadata],
+           (str(root / 'docs/third-party-notices.md'), '.'), *metadata,
+           *collect_data_files('muta', includes=['locales/*.json']),
+           *collect_data_files('PySide6', includes=[f'**/qtbase_{code}.qm' for code in ('en', 'fr', 'de', 'es', 'it')])],
     hiddenimports=['pillow_heif'],
     hookspath=[], hooksconfig={}, runtime_hooks=[],
     excludes=['PySide6.QtWebEngineCore', 'PySide6.QtWebEngineWidgets', 'PySide6.QtQml',

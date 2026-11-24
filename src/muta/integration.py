@@ -1,6 +1,7 @@
 """Per-user Windows Explorer integration. Only Muta-owned keys are modified."""
 
 from __future__ import annotations
+from .i18n import tr
 
 import os
 from pathlib import Path
@@ -48,7 +49,7 @@ def menu_entries(settings: Settings) -> dict[str, list[tuple[str, str, str]]]:
                     continue
                 # Quote %1 explicitly, even though list2cmdline would not need to.
                 command = subprocess.list2cmdline([*base, "convert", "--preset", preset.id, "--notify", "--"])
-                items.append((preset.id, preset.name, command + ' "%1"'))
+                items.append((preset.id, preset.display_name(settings.language), command + ' "%1"'))
             if items:
                 entries[extension] = items
     return entries
@@ -56,8 +57,7 @@ def menu_entries(settings: Settings) -> dict[str, list[tuple[str, str, str]]]:
 
 def _require_windows():
     if os.name != "nt":
-        raise ConversionError("Il menu contestuale automatico è disponibile su Windows. "
-                              "Su macOS/Linux usa per ora l'interfaccia o la CLI.")
+        raise ConversionError(tr("Il menu contestuale automatico è disponibile su Windows. Su macOS/Linux usa per ora l'interfaccia o la CLI."))
     import winreg
     return winreg
 
@@ -118,7 +118,7 @@ def install_menu(settings: Settings) -> None:
     def value(path, name, data):
         with reg.CreateKey(reg.HKEY_CURRENT_USER, path) as key:
             reg.SetValueEx(key, name, 0, reg.REG_SZ, data)
-    value(FALLBACK_KEY, "MUIVerb", "Not mutable")
+    value(FALLBACK_KEY, "MUIVerb", tr('Not mutable', language=settings.language))
     value(FALLBACK_KEY, "MultiSelectModel", "Single")
     if entries:
         value(FALLBACK_KEY, "AppliesTo", not_mutable_condition(entries))
@@ -126,7 +126,7 @@ def install_menu(settings: Settings) -> None:
     value(FALLBACK_KEY + "\\command", "", command + ' "%1"')
     for extension, items in entries.items():
         root = f"{PREFIX}\\.{extension}\\shell\\{OWN_KEY}"
-        value(root, "MUIVerb", "Muta · Converti in")
+        value(root, "MUIVerb", tr('Muta · Converti in', language=settings.language))
         value(root, "SubCommands", "")
         value(root, "MultiSelectModel", "Single")
         value(root, "Icon", subprocess.list2cmdline([str(icon_path())]))
@@ -136,7 +136,7 @@ def install_menu(settings: Settings) -> None:
             value(key, "MultiSelectModel", "Single")
             value(key + "\\command", "", command)
         key = root + r"\shell\999_preferences"
-        value(key, "MUIVerb", "Preferences…")
+        value(key, "MUIVerb", tr('Preferences…', language=settings.language))
         value(key, "SeparatorBefore", "")
         value(key + "\\command", "", subprocess.list2cmdline([*launch_command(), "--preferences"]))
     _notify_shell()

@@ -11,6 +11,7 @@ from PySide6.QtCore import QCoreApplication, QEvent
 from muta.gui import Preferences
 from muta.settings import Settings, load_settings
 from muta.updates import Release
+from muta.i18n import LANGUAGES, tr, set_language
 from PySide6.QtWidgets import QMessageBox
 
 TEMP_ROOT = Path(__file__).resolve().parents[1] / '.test-output'
@@ -27,6 +28,34 @@ class GuiTests(unittest.TestCase):
             widget.close()
             widget.deleteLater()
         QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
+        set_language('it')
+
+    def test_windows_and_standard_buttons_follow_selected_language(self):
+        expected_tabs = {'en': 'Conversion Presets', 'fr': 'Préréglages de conversion',
+                         'de': 'Konvertierungsvorlagen', 'es': 'Ajustes de conversión', 'it': 'Preset di conversione'}
+        expected_yes = {'en': 'Yes', 'fr': 'Oui', 'de': 'Ja', 'es': 'Sí', 'it': 'Sì'}
+        for code in LANGUAGES:
+            with self.subTest(language=code):
+                window = Preferences(Settings(language=code))
+                self.assertEqual(window.tabs.tabText(0), expected_tabs[code])
+                self.assertEqual(window.check_button.text(), tr('Controlla aggiornamenti', language=code))
+                prompt = QMessageBox()
+                prompt.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+                self.assertEqual(prompt.button(QMessageBox.Yes).text().replace('&', ''), expected_yes[code])
+                prompt.deleteLater()
+                window.close()
+                window.deleteLater()
+
+    def test_language_change_saves_and_refreshes_shell(self):
+        with tempfile.TemporaryDirectory(dir=TEMP_ROOT) as folder, patch.dict(os.environ, {'MUTA_CONFIG_DIR': folder}), \
+                patch('muta.gui.set_autostart'), patch('muta.gui.menu_installed', return_value=True), \
+                patch('muta.gui.install_menu') as install:
+            window = Preferences(Settings(language='it'))
+            window.language_choice.setCurrentIndex(window.language_choice.findData('en'))
+            self.assertTrue(window.save())
+            self.assertEqual(load_settings().language, 'en')
+            self.assertEqual(install.call_args.args[0].language, 'en')
+            window.close()
 
     def test_edit_select_save_preset(self):
         with tempfile.TemporaryDirectory(dir=TEMP_ROOT) as folder, patch.dict(os.environ, {'MUTA_CONFIG_DIR': folder}), \
