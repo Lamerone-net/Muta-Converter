@@ -27,6 +27,7 @@ All notable changes are recorded here. Versions follow Semantic Versioning.
 - Preset labels use `FORMAT - Description`, such as `MKV - Matroska` and `PPT - PowerPoint`.
 - Legacy generated preset names migrate automatically without replacing custom names.
 - Repository organized into source, tests, scripts, installer, assets and documentation directories.
+- Windows setup defaults to `C:\Programs\Muta Converter`, with an editable destination and administrator privileges.
 
 ### Known limitations
 

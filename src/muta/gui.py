@@ -258,7 +258,7 @@ class Preferences(QDialog):
                for widget in QApplication.topLevelWidgets()):
             QMessageBox.information(self, "Aggiornamento pronto", "Termina le conversioni prima di installare. Puoi ripetere il controllo aggiornamenti in seguito.")
             return
-        answer = QMessageBox.question(self, "Installa aggiornamento", "Avviare l'installer adesso?\nMuta verrà chiuso; l'installazione guidata chiederà come procedere.", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        answer = QMessageBox.question(self, "Installa aggiornamento", "Avviare l'installer adesso?\nWindows richiederà l'autorizzazione amministratore.\nMuta verrà chiuso; l'installazione guidata chiederà come procedere.", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if answer == QMessageBox.Yes:
             try:
                 launch_installer(path, release)

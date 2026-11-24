@@ -8,9 +8,11 @@ AppName=Muta Converter
 AppVersion={#AppVersion}
 AppPublisher=Lamerone-net
 AppPublisherURL=https://github.com/Lamerone-net/Muta-Converter
-DefaultDirName={localappdata}\Programs\Muta Converter
+DefaultDirName={sd}\Programs\Muta Converter
+DisableDirPage=no
+UsePreviousAppDir=no
 DefaultGroupName=Muta Converter
-PrivilegesRequired=lowest
+PrivilegesRequired=admin
 OutputDir=..\dist\installer
 OutputBaseFilename=Muta-Converter-{#AppVersion}-Setup
 Compression=lzma2
@@ -41,9 +43,9 @@ Name: "{group}\Muta Converter"; Filename: "{app}\Muta.exe"; Parameters: "--prefe
 Name: "{autodesktop}\Muta Converter"; Filename: "{app}\Muta.exe"; Parameters: "--preferences"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\Muta.exe"; Parameters: "shell install"; Tasks: contextmenu; Flags: runhidden waituntilterminated
-Filename: "{app}\Muta.exe"; Parameters: "autostart enable"; Tasks: startup; Flags: runhidden waituntilterminated
-Filename: "{app}\Muta.exe"; Parameters: "--tray"; Description: "Avvia Muta Converter nella systray"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\Muta.exe"; Parameters: "shell install"; Tasks: contextmenu; Flags: runhidden waituntilterminated runasoriginaluser
+Filename: "{app}\Muta.exe"; Parameters: "autostart enable"; Tasks: startup; Flags: runhidden waituntilterminated runasoriginaluser
+Filename: "{app}\Muta.exe"; Parameters: "--tray"; Description: "Avvia Muta Converter nella systray"; Flags: nowait postinstall skipifsilent runasoriginaluser
 
 [UninstallRun]
 Filename: "{app}\Muta.exe"; Parameters: "uninstall-integration"; Flags: runhidden waituntilterminated skipifdoesntexist; RunOnceId: "RemoveMutaIntegration"

@@ -46,7 +46,7 @@ class UpdateTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(dir=TEMP_ROOT) as folder, \
                 patch.dict(os.environ, {'MUTA_CONFIG_DIR': folder}), \
                 patch('muta.updates.urlopen', return_value=io.BytesIO(payload)), \
-                patch('muta.updates.subprocess.Popen') as launch:
+                patch('muta.updates.os.startfile', create=True) as launch:
             path = download_installer(release)
             self.assertEqual(path.read_bytes(), payload)
             launch.assert_not_called()
@@ -56,7 +56,7 @@ class UpdateTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(dir=TEMP_ROOT) as folder, \
                 patch.dict(os.environ, {'MUTA_CONFIG_DIR': folder}), \
                 patch('muta.updates.urlopen', return_value=io.BytesIO(b'corrupt')), \
-                patch('muta.updates.subprocess.Popen') as launch:
+                patch('muta.updates.os.startfile', create=True) as launch:
             with self.assertRaises(ConversionError):
                 download_installer(release)
             self.assertEqual(list((Path(folder) / 'updates').iterdir()), [])
@@ -66,9 +66,20 @@ class UpdateTests(unittest.TestCase):
         release = parse_release(self.release_data(), '0.1.0')
         with tempfile.TemporaryDirectory(dir=TEMP_ROOT) as folder, \
                 patch('muta.updates.sys.platform', 'win32'), \
-                patch('muta.updates.subprocess.Popen') as launch:
+                patch('muta.updates.os.startfile', create=True) as launch:
             path = Path(folder) / 'setup.exe'
             path.write_bytes(b'modified')
             with self.assertRaises(ConversionError):
                 launch_installer(path, release)
             launch.assert_not_called()
+
+    def test_verified_installer_uses_normal_uac_prompt(self):
+        payload = b'installer test bytes'
+        release = parse_release(self.release_data(payload=payload), '0.1.0')
+        with tempfile.TemporaryDirectory(dir=TEMP_ROOT) as folder, \
+                patch('muta.updates.sys.platform', 'win32'), \
+                patch('muta.updates.os.startfile', create=True) as launch:
+            path = Path(folder) / 'setup.exe'
+            path.write_bytes(payload)
+            launch_installer(path, release)
+            launch.assert_called_once_with(str(path), 'runas')

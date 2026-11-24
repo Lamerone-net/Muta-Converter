@@ -6,7 +6,7 @@ Early working version: **0.1.0**. Windows is the first integration target. The c
 
 ## Application
 
-- Graphical Windows installer, installed for the current user without administrator rights.
+- Graphical Windows installer, defaulting to `C:\Programs\Muta Converter` with administrator rights and an editable destination.
 - Tray menu: **Preferences**, **About**, separator, **Quit**.
 - Preferences tabs: **Conversion Presets**, **Application**, **Updates**, **About**.
 - Create, duplicate, reorder, enable and remove presets. Choose input extensions and output format.
@@ -112,7 +112,7 @@ Preferences are stored in `%APPDATA%\MutaConverter\settings.json` on Windows, `~
 .\.venv\Scripts\python.exe scripts/build.py --installer --iscc "C:\Tools\Inno Setup 6\ISCC.exe"
 ```
 
-The Windows installer is written to `dist/installer/Muta-Converter-<version>-Setup.exe`. It offers context-menu registration, optional startup at login and an optional desktop shortcut, then starts the tray app. Uninstall removes Muta's menu and startup entry while retaining user preferences and converted files. This initial installer is unsigned.
+The Windows installer is written to `dist/installer/Muta-Converter-<version>-Setup.exe`. Its default destination is `<system drive>\Programs\Muta Converter` (normally `C:\Programs\Muta Converter`), not AppData. The destination page remains visible, and installation requires administrator privileges. This is an x64 build, so it does not use a `(x86)` folder. It offers current-user context-menu registration, optional startup at login and an optional desktop shortcut, then starts the tray app as the original user. Uninstall removes Muta's menu and startup entry for the uninstalling account while retaining user preferences and converted files. This initial installer is unsigned.
 
 Build on each target operating system: PyInstaller does not cross-compile Windows, macOS and Linux apps from a single host. The GitHub Actions workflow prepares native builds. The macOS output includes an `.app`, while Linux produces an application folder. macOS notarization, Linux desktop packages and native Finder/file-manager menus remain future work. Windows packaging currently targets x64.
 

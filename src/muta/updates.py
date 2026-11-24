@@ -5,7 +5,6 @@ import json
 import os
 from pathlib import Path
 import re
-import subprocess
 import sys
 import tempfile
 import time
@@ -120,4 +119,5 @@ def launch_installer(path: Path, release: Release) -> None:
     if digest != release.sha256:
         raise ConversionError('Il file è cambiato dopo il download: installazione annullata.')
     # Interactive setup only. The GUI calls this solely after explicit confirmation.
-    subprocess.Popen([str(path)], close_fds=True)
+    # ShellExecute's runas verb opens the normal Windows UAC consent prompt.
+    os.startfile(str(path), 'runas')
