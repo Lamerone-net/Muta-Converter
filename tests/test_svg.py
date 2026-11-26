@@ -64,6 +64,26 @@ class SvgTests(unittest.TestCase):
         pdf = convert(self.svg, 'pdf', options=Options(svg_width=300, svg_height=150, svg_dpi=300))
         self.assertRegex(pdf.read_bytes(), rb'/MediaBox\s*\[\s*0\s+0\s+72\.0\s+36\.0\s*\]')
 
+    def test_nested_svg_viewports_are_visible_scaled_and_clipped(self):
+        # Synthetic reproduction of a QR-export layout; no user artwork is stored.
+        self.svg.write_text('''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+          <svg x="10" y="20" width="80" height="60" viewBox="0 0 800 600">
+            <rect width="800" height="600" fill="white"/>
+            <svg x="200" y="100" width="400" height="400" viewBox="0 0 40 40">
+              <rect width="80" height="40" fill="black"/>
+            </svg>
+          </svg>
+        </svg>''')
+        output = convert(self.svg, 'png', options=Options(svg_width=200, svg_height=100, svg_dpi=300))
+        with Image.open(output) as image:
+            self.assertEqual(image.size, (200, 100))
+            self.assertEqual(image.getpixel((100, 50)), (0, 0, 0, 255))
+            self.assertEqual(image.getpixel((30, 25)), (255, 255, 255, 255))
+            self.assertEqual(image.getpixel((150, 50)), (255, 255, 255, 255))
+            self.assertEqual(image.getpixel((5, 5))[3], 0)
+            self.assertEqual(image.getpixel((185, 50))[3], 0)
+            self.assertAlmostEqual(image.info['dpi'][0], 300, delta=0.1)
+
     def test_true_vector_paths_from_png_and_jpg(self):
         for suffix in ('png', 'jpg'):
             with self.subTest(suffix=suffix):

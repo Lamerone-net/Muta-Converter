@@ -7,7 +7,7 @@ from PyInstaller.utils.hooks import copy_metadata, collect_data_files
 root = Path(SPECPATH)
 version = re.search(r'__version__ = "([^"]+)"', (root / 'src/muta/__init__.py').read_text()).group(1)
 metadata = []
-for package in ('Pillow', 'PySide6-Essentials', 'shiboken6', 'pillow-heif', 'defusedxml', 'vtracer'):
+for package in ('Pillow', 'PySide6-Essentials', 'shiboken6', 'pillow-heif', 'defusedxml', 'vtracer', 'resvg_py'):
     metadata += copy_metadata(package)
 analysis = Analysis(
     [str(root / 'scripts/launcher.py')],

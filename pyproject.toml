@@ -7,7 +7,7 @@ name = "muta"
 dynamic = ["version"]
 description = "Muta: a local file converter for Windows, macOS and Linux"
 requires-python = ">=3.11"
-dependencies = ["Pillow>=11.3,<14", "PySide6-Essentials==6.10.2", "defusedxml>=0.7.1,<1", "vtracer==0.6.15"]
+dependencies = ["Pillow>=11.3,<14", "PySide6-Essentials==6.10.2", "defusedxml>=0.7.1,<1", "vtracer==0.6.15", "resvg_py==0.5.0"]
 
 [project.optional-dependencies]
 heif = ["pillow-heif>=1.0,<2"]

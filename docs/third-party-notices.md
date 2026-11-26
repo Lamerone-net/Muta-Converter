@@ -10,7 +10,9 @@ Muta uses Python, Pillow, Qt for Python (PySide6-Essentials and Shiboken6), and 
 - defusedxml (SVG XML parsing): https://github.com/tiran/defusedxml/blob/main/LICENSE
 - VTracer (SVG vector tracing, MIT): https://github.com/visioncortex/vtracer
 
-SVG rendering uses the Qt SVG module included with Qt for Python. VTracer and defusedxml are bundled with their distribution metadata and license files.
+SVG dimensions are inspected with Qt SVG; raster rendering uses resvg via resvg_py, including support for nested SVG viewports. VTracer, defusedxml and resvg_py are bundled with their distribution metadata and license files.
+
+- resvg_py / resvg: https://github.com/baseplate-admin/resvg-py and https://github.com/linebender/resvg
 
 FFmpeg, LibreOffice and 7-Zip are detected from the user's machine; their binaries are not redistributed in the initial installer.
 

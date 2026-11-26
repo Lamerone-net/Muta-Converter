@@ -4,6 +4,13 @@ All notable changes are recorded here. Versions follow Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-11-26
+
+### Fixed
+
+- Render nested SVG viewports with bundled resvg, fixing completely transparent PNGs from QR-code SVG exports.
+- Preserve nested positioning, viewBox scaling and clipping together with user-selected dimensions, rotation and print DPI.
+
 ## [0.1.7] - 2026-11-26
 
 ### Added

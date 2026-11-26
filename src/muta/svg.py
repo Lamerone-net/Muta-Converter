@@ -79,10 +79,11 @@ def validated_svg(source, first_frame):
     return ET.tostring(root, encoding="utf-8")
 
 
-def load_renderer(source, settings):
+def load_renderer(source, settings, data=None):
     from PySide6.QtCore import QByteArray
     from PySide6.QtSvg import QSvgRenderer, QtSvg
-    data = validated_svg(source, settings.first_frame)
+    if data is None:
+        data = validated_svg(source, settings.first_frame)
     renderer = QSvgRenderer()
     renderer.setOptions(QtSvg.Option.DisableSMILAnimations | QtSvg.Option.DisableCSSAnimations)
     if not renderer.load(QByteArray(data)) or not renderer.isValid():
@@ -114,30 +115,31 @@ def output_dimensions(natural_size, settings):
 
 
 def render_svg(source, destination, settings):
+    import resvg_py
     os.environ["QT_QPA_PLATFORM"] = "offscreen"
-    from PySide6.QtCore import QRectF, Qt
-    from PySide6.QtGui import QFont, QFontDatabase, QGuiApplication, QImage, QPainter
+    from PySide6.QtGui import QGuiApplication
     app = QGuiApplication([])
-    if os.name == "nt":
-        font = Path(os.environ.get("WINDIR", "C:/Windows")) / "Fonts/segoeui.ttf"
-        if font.is_file():
-            QFontDatabase.addApplicationFont(str(font))
-            app.setFont(QFont("Segoe UI", 10))
-    renderer, natural = load_renderer(source, settings)
+    data = validated_svg(source, settings.first_frame)
+    renderer, natural = load_renderer(source, settings, data)
     width, height = output_dimensions(natural, settings)
     if settings.rotation in (90, 270):
         width, height = height, width
-    image = QImage(width, height, QImage.Format_RGBA8888)
-    if image.isNull():
-        raise ConversionError(tr("SVG troppo grande da renderizzare. Riduci le dimensioni nel preset."))
-    image.fill(Qt.transparent)
-    painter = QPainter(image)
-    try:
-        renderer.render(painter, QRectF(0, 0, width, height))
-    finally:
-        painter.end()
-    if not image.save(str(destination), "PNG"):
-        raise ConversionError(tr("Il motore non ha prodotto un file valido."))
+    # Qt supplies intrinsic dimensions but cannot paint all nested SVG viewports.
+    # Keep the original viewport for percentage lengths and nested viewBoxes;
+    # an outer viewport applies the exact requested (possibly unlocked) aspect ratio.
+    root = ET.fromstring(data)
+    root.set("width", str(natural[0]))
+    root.set("height", str(natural[1]))
+    root.attrib.pop("x", None)
+    root.attrib.pop("y", None)
+    canvas = ET.Element(f"{{{SVG_NS}}}svg", {
+        "width": str(width), "height": str(height),
+        "viewBox": f"0 0 {natural[0]} {natural[1]}", "preserveAspectRatio": "none",
+    })
+    canvas.append(root)
+    # SVG physical units use 96 CSS pixels/inch. Print DPI is saved by Pillow later.
+    png = resvg_py.svg_to_bytes(svg_string=ET.tostring(canvas, encoding="unicode"), dpi=96)
+    destination.write_bytes(png)
 
 
 def trace_image(source, destination, settings):
