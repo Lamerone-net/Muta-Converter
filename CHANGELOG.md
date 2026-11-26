@@ -4,6 +4,14 @@ All notable changes are recorded here. Versions follow Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-11-26
+
+### Added
+
+- Ask for width, height, aspect-ratio locking and print resolution before each SVG raster conversion from Explorer or Preferences; cancelling creates no files.
+- Apply the selected pixel dimensions after rotation and store DPI in PNG, JPG, TIFF, BMP and PDF outputs; show print-size estimates and format-specific limitations.
+- Add `--width`, `--height` and `--dpi` to non-interactive SVG conversion commands.
+
 ## [0.1.6] - 2026-11-26
 
 ### Changed

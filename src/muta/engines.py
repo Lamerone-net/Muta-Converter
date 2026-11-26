@@ -73,7 +73,7 @@ IMAGE_FORMATS = {"jpg": "JPEG", "png": "PNG", "webp": "WEBP", "avif": "AVIF",
                  "gif": "GIF", "bmp": "BMP", "tiff": "TIFF", "ico": "ICO", "pdf": "PDF"}
 
 
-def convert_image(source: Path, destination: Path, target: str, settings) -> None:
+def convert_image(source: Path, destination: Path, target: str, settings, *, dpi=None) -> None:
     if source.suffix.lower() == ".svg" or target == "svg":
         from .svg import convert_svg
         convert_svg(source, destination, target, settings)
@@ -105,6 +105,8 @@ def convert_image(source: Path, destination: Path, target: str, settings) -> Non
         # Deliberately omit metadata; orientation has already been applied.
         frame.info.clear()
         options = {"quality": settings.quality} if target in {"jpg", "webp", "avif"} else {}
+        if dpi is not None and target in {"jpg", "png", "tiff", "bmp", "pdf"}:
+            options["dpi"] = (dpi, dpi)
         frame.save(destination, format=IMAGE_FORMATS[target], **options)
 
 

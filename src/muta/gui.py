@@ -3,7 +3,7 @@
 from __future__ import annotations
 from .i18n import tr, set_language, configure_qt, application, LANGUAGES
 
-from dataclasses import asdict
+from dataclasses import asdict, replace
 import hashlib
 import os
 from pathlib import Path
@@ -63,9 +63,10 @@ class ConversionWorker(QThread):
     result = Signal(str, bool)
     progress = Signal(int)
 
-    def __init__(self, files, target, options, output_dir):
+    def __init__(self, files, target, options, output_dir, per_file_options=None):
         super().__init__()
         self.files, self.target, self.options, self.output_dir = files, target, options, output_dir
+        self.per_file_options = per_file_options or {}
         self.cancelled = threading.Event()
         self.failures = 0
         self.completed = 0
@@ -75,7 +76,7 @@ class ConversionWorker(QThread):
             if self.cancelled.is_set():
                 break
             try:
-                output = convert(source, self.target, self.output_dir, self.options)
+                output = convert(source, self.target, self.output_dir, self.per_file_options.get(source, self.options))
                 self.result.emit(str(output), True)
             except Exception as exc:
                 self.failures += 1
@@ -85,7 +86,7 @@ class ConversionWorker(QThread):
 
 
 class ConversionDialog(QDialog):
-    def __init__(self, files, target, options, output_dir, parent=None):
+    def __init__(self, files, target, options, output_dir, parent=None, per_file_options=None):
         super().__init__(parent)
         self.setWindowTitle(tr('Muta · Conversione'))
         self.setWindowIcon(app_icon())
@@ -101,7 +102,7 @@ class ConversionDialog(QDialog):
         layout.addWidget(self.log)
         self.button = QPushButton(tr('Interrompi dopo il file corrente'))
         layout.addWidget(self.button)
-        self.worker = ConversionWorker(files, target, options, output_dir)
+        self.worker = ConversionWorker(files, target, options, output_dir, per_file_options)
         self.worker.result.connect(lambda text, ok: self.log.append(("OK · " if ok else tr('ERRORE · ')) + text.replace("<", "&lt;")))
         self.worker.progress.connect(self.progress.setValue)
         self.worker.finished.connect(self.done_work)
@@ -445,7 +446,7 @@ class Preferences(QDialog):
             else:
                 value = widget.text()
             values[key] = value
-        preset.options = Options(**values)
+        preset.options = replace(preset.options, **values)
 
     def select_preset(self, index):
         self.store_current()
@@ -468,6 +469,8 @@ class Preferences(QDialog):
             item.setCheckState(Qt.Checked if extension in preset.inputs else Qt.Unchecked)
             self.inputs.addItem(item)
         for key, value in asdict(preset.options).items():
+            if key not in self.fields:
+                continue
             widget = self.fields[key]
             if isinstance(widget, QSpinBox):
                 widget.setValue(value)
@@ -612,13 +615,23 @@ class Preferences(QDialog):
         if ok:
             preset = presets[labels.index(label)]
             output = Path(self.settings.output_dir) if self.settings.output_dir else None
-            dialog = ConversionDialog(files, preset.target, preset.options, output, self)
+            from .gui_svg import prepare_svg_options
+            choices = prepare_svg_options(files, preset.target, preset.options, self)
+            if choices is None or choices is False:
+                return
+            dialog = ConversionDialog(files, preset.target, preset.options, output, self, choices)
             dialog.exec()
 
 
 def run_conversion(files, target, options, output_dir) -> int:
     app = application()
-    dialog = ConversionDialog(files, target, options, output_dir)
+    from .gui_svg import prepare_svg_options
+    choices = prepare_svg_options(files, target, options)
+    if choices is None:
+        return 0
+    if choices is False:
+        return 1
+    dialog = ConversionDialog(files, target, options, output_dir, per_file_options=choices)
     dialog.exec()
     return 1 if dialog.worker.failures or dialog.worker.completed != len(files) else 0
 

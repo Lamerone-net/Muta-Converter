@@ -7,8 +7,10 @@ import unittest
 from unittest.mock import patch
 
 from PySide6.QtWidgets import QApplication
-from PySide6.QtCore import QCoreApplication, QEvent
-from muta.gui import Preferences
+from PySide6.QtCore import QCoreApplication, QEvent, QTimer
+from muta.gui import Preferences, run_conversion
+from muta.gui_svg import SvgRasterDialog, prepare_svg_options
+from muta.service import Options
 from muta.settings import Settings, load_settings
 from muta.updates import Release
 from muta.i18n import LANGUAGES, tr, set_language
@@ -73,6 +75,60 @@ class GuiTests(unittest.TestCase):
             self.assertEqual(load_settings().presets[0].name, 'Web quality')
             self.assertEqual(window.tabs.count(), 4)
             window.close()
+
+    def test_svg_raster_popup_size_ratio_and_resolution(self):
+        with tempfile.TemporaryDirectory(dir=TEMP_ROOT) as folder:
+            source = Path(folder) / 'sample.svg'
+            source.write_text('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 40"/>')
+            dialog = SvgRasterDialog(source, 'png', Options())
+            self.assertEqual((dialog.width_choice.value(), dialog.height_choice.value()), (80, 40))
+            dialog.width_choice.setValue(400)
+            self.assertEqual(dialog.height_choice.value(), 200)
+            dialog.height_choice.setValue(100)
+            self.assertEqual(dialog.width_choice.value(), 200)
+            dialog.dpi_choice.setValue(300)
+            self.assertEqual(dialog.width_choice.value(), 200)
+            dialog.lock_ratio.setChecked(False)
+            dialog.height_choice.setValue(250)
+            chosen = dialog.selected_options()
+            self.assertEqual((chosen.svg_width, chosen.svg_height, chosen.svg_dpi), (200, 250, 300))
+            self.assertEqual(dialog.options.svg_width, 0)
+            dialog.width_choice.setValue(10000)
+            dialog.height_choice.setValue(10000)
+            self.assertFalse(dialog.buttons.button(dialog.buttons.StandardButton.Ok).isEnabled())
+
+    def test_svg_popup_cancel_does_not_start_conversion(self):
+        with tempfile.TemporaryDirectory(dir=TEMP_ROOT) as folder:
+            source = Path(folder) / 'sample.svg'
+            source.write_text('<svg xmlns="http://www.w3.org/2000/svg" width="80" height="40"/>')
+            with patch('muta.gui.ConversionDialog') as conversion:
+                QTimer.singleShot(0, lambda: self.app.activeModalWidget().reject())
+                self.assertEqual(run_conversion([source], 'png', Options(), None), 0)
+                conversion.assert_not_called()
+            with patch('muta.gui_svg.SvgRasterDialog') as popup:
+                self.assertEqual(prepare_svg_options([Path('a.png')], 'jpg', Options()), {})
+                popup.assert_not_called()
+
+    def test_svg_popup_choices_reach_the_conversion(self):
+        with tempfile.TemporaryDirectory(dir=TEMP_ROOT) as folder:
+            source = Path(folder) / 'sample.svg'
+            source.write_text('<svg xmlns="http://www.w3.org/2000/svg" width="80" height="40"/>')
+            def choose():
+                dialog = self.app.activeModalWidget()
+                dialog.width_choice.setValue(600)
+                dialog.dpi_choice.setValue(300)
+                dialog.accept()
+            with patch('muta.gui.ConversionDialog') as conversion:
+                conversion.return_value.worker.failures = 0
+                conversion.return_value.worker.completed = 1
+                QTimer.singleShot(0, choose)
+                self.assertEqual(run_conversion([source], 'png', Options(), None), 0)
+                chosen = conversion.call_args.kwargs['per_file_options'][source]
+                self.assertEqual((chosen.svg_width, chosen.svg_height, chosen.svg_dpi), (600, 300, 300))
+            source.write_text('invalid XML')
+            with patch('muta.gui_svg.QMessageBox.warning'), patch('muta.gui.ConversionDialog') as conversion:
+                self.assertEqual(run_conversion([source], 'png', Options(), None), 1)
+                conversion.assert_not_called()
 
     def test_every_preset_displays_and_duplicates(self):
         window = Preferences(Settings())

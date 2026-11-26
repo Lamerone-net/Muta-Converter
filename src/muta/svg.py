@@ -79,18 +79,10 @@ def validated_svg(source, first_frame):
     return ET.tostring(root, encoding="utf-8")
 
 
-def render_svg(source, destination, settings):
-    data = validated_svg(source, settings.first_frame)
-    os.environ["QT_QPA_PLATFORM"] = "offscreen"
-    from PySide6.QtCore import QByteArray, QRectF, Qt
-    from PySide6.QtGui import QFont, QFontDatabase, QGuiApplication, QImage, QPainter
+def load_renderer(source, settings):
+    from PySide6.QtCore import QByteArray
     from PySide6.QtSvg import QSvgRenderer, QtSvg
-    app = QGuiApplication([])
-    if os.name == "nt":
-        font = Path(os.environ.get("WINDIR", "C:/Windows")) / "Fonts/segoeui.ttf"
-        if font.is_file():
-            QFontDatabase.addApplicationFont(str(font))
-            app.setFont(QFont("Segoe UI", 10))
+    data = validated_svg(source, settings.first_frame)
     renderer = QSvgRenderer()
     renderer.setOptions(QtSvg.Option.DisableSMILAnimations | QtSvg.Option.DisableCSSAnimations)
     if not renderer.load(QByteArray(data)) or not renderer.isValid():
@@ -103,9 +95,38 @@ def render_svg(source, destination, settings):
         width, height = box.width(), box.height()
     if not all(math.isfinite(v) and v > 0 for v in (width, height)):
         raise ConversionError(tr("Dimensioni SVG mancanti o non valide."))
-    width, height = max(1, round(width * settings.scale / 100)), max(1, round(height * settings.scale / 100))
+    return renderer, (width, height)
+
+
+def output_dimensions(natural_size, settings):
+    width, height = natural_size
+    if settings.rotation in (90, 270):
+        width, height = height, width
+    ratio = width / height
+    if settings.svg_width or settings.svg_height:
+        width = settings.svg_width or max(1, round(settings.svg_height * ratio))
+        height = settings.svg_height or max(1, round(settings.svg_width / ratio))
+    else:
+        width, height = max(1, round(width * settings.scale / 100)), max(1, round(height * settings.scale / 100))
     if max(width, height) > 16384 or width * height > MAX_RENDER_PIXELS:
         raise ConversionError(tr("SVG troppo grande da renderizzare. Riduci le dimensioni nel preset."))
+    return width, height
+
+
+def render_svg(source, destination, settings):
+    os.environ["QT_QPA_PLATFORM"] = "offscreen"
+    from PySide6.QtCore import QRectF, Qt
+    from PySide6.QtGui import QFont, QFontDatabase, QGuiApplication, QImage, QPainter
+    app = QGuiApplication([])
+    if os.name == "nt":
+        font = Path(os.environ.get("WINDIR", "C:/Windows")) / "Fonts/segoeui.ttf"
+        if font.is_file():
+            QFontDatabase.addApplicationFont(str(font))
+            app.setFont(QFont("Segoe UI", 10))
+    renderer, natural = load_renderer(source, settings)
+    width, height = output_dimensions(natural, settings)
+    if settings.rotation in (90, 270):
+        width, height = height, width
     image = QImage(width, height, QImage.Format_RGBA8888)
     if image.isNull():
         raise ConversionError(tr("SVG troppo grande da renderizzare. Riduci le dimensioni nel preset."))
@@ -154,7 +175,7 @@ def worker(job_path):
         else:
             raster = destination.parent / "render.png"
             render_svg(source, raster, settings)
-            convert_image(raster, destination, job["target"], replace(settings, scale=100))
+            convert_image(raster, destination, job["target"], replace(settings, scale=100), dpi=settings.svg_dpi)
         return 0
     except Exception as exc:
         (job_path.parent / "svg-error.txt").write_text(str(exc), encoding="utf-8")

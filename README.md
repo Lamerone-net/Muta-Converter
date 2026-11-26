@@ -2,7 +2,7 @@
 
 Muta is a cross-platform file converter by WoollySheep, built in Python for converting files directly from the right-click menu. It supports images, documents, audio, video and Apple iWork files, with a graphical installer, a system tray icon and customizable conversion presets.
 
-Early working version: **0.1.6**. Windows is the first integration target. The conversion core and Qt interface also run on macOS and Linux; their native file-manager integrations are not implemented yet.
+Early working version: **0.1.7**. Windows is the first integration target. The conversion core and Qt interface also run on macOS and Linux; their native file-manager integrations are not implemented yet.
 
 ## Application
 
@@ -35,6 +35,8 @@ The Windows menu is a snapshot of available engines and enabled presets. Saving 
 | Archives | ZIP, 7Z, TAR, TGZ, GZ, TBZ2, BZ2, TXZ, XZ, ARJ, RAR, CAB, LZH | ZIP, 7Z, TAR, TGZ, TBZ2, TXZ | 7-Zip |
 
 The complete catalogue is in `src/muta/catalog.py`. A listed extension is a supported routing option, not a guarantee that every variant or codec is readable.
+
+**SVG conversion dialog:** Starting an SVG-to-bitmap conversion from Explorer or Preferences opens a dialog for that file. Set final width and height in pixels, lock/unlock the aspect ratio, and choose print resolution in DPI. Changes affect only that conversion. DPI controls physical print size without changing pixel count; it is stored in PNG, JPG, TIFF, BMP and PDF. Other output formats show DPI as unavailable; ICO keeps its 256 × 256 canvas. Cancelling stops the batch before any conversion starts. The CLI stays non-interactive: `muta convert --to png --width 1200 --dpi 300 logo.svg` (height is inferred if omitted).
 
 **SVG:** SVG inputs are rasterized with the bundled Qt SVG engine; PDF output also contains a raster image. Dimensions come from the SVG size/viewBox and the preset scale. Transparent PNG/WebP output, rotation and opaque background settings are supported. Qt SVG supports a subset of SVG; complex filters, text layout and browser-specific features may differ. Fonts must be installed. External images, scripts and HTML content are rejected; raster images must be embedded. Animated SVG requires explicit first-frame export. Input is limited to 32 MiB and rendering to 40 million pixels / 16,384 pixels per side.
 

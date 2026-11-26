@@ -25,6 +25,9 @@ def parser() -> argparse.ArgumentParser:
     choice.add_argument("--preset")
     conversion.add_argument("--output-dir", type=Path)
     conversion.add_argument("--quality", type=int)
+    conversion.add_argument("--width", type=int, help=tr('Larghezza SVG in uscita (pixel)'))
+    conversion.add_argument("--height", type=int, help=tr('Altezza SVG in uscita (pixel)'))
+    conversion.add_argument("--dpi", type=int, help=tr('Risoluzione di stampa SVG (DPI)'))
     conversion.add_argument("--first-frame", action="store_true", default=None)
     conversion.add_argument("--notify", action="store_true", help=tr('Mostra avanzamento e risultato in una finestra'))
     conversion.add_argument("files", nargs="+", type=Path)
@@ -101,6 +104,9 @@ def main(argv=None) -> int:
                 target = args.target
             if args.quality is not None:
                 options = replace(options, quality=args.quality)
+            for argument, field in ((args.width, "svg_width"), (args.height, "svg_height"), (args.dpi, "svg_dpi")):
+                if argument is not None:
+                    options = replace(options, **{field: argument})
             if args.first_frame is not None:
                 options = replace(options, first_frame=args.first_frame)
             output_dir = args.output_dir or (Path(settings.output_dir) if settings.output_dir else None)

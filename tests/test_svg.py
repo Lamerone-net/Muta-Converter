@@ -51,6 +51,19 @@ class SvgTests(unittest.TestCase):
                             self.assertGreater(pixel[1], 240)
                             self.assertLess(pixel[0], 15)
 
+    def test_requested_output_size_rotation_and_dpi(self):
+        options = Options(svg_width=60, svg_height=120, svg_dpi=300, rotation=90)
+        for target in ('png', 'jpg', 'tiff', 'bmp'):
+            output = convert(self.svg, target, options=options)
+            with Image.open(output) as image:
+                self.assertEqual(image.size, (60, 120))
+                self.assertAlmostEqual(image.info['dpi'][0], 300, delta=0.1)
+        output = convert(self.svg, 'png', options=Options(svg_width=160))
+        with Image.open(output) as image:
+            self.assertEqual(image.size, (160, 80))
+        pdf = convert(self.svg, 'pdf', options=Options(svg_width=300, svg_height=150, svg_dpi=300))
+        self.assertRegex(pdf.read_bytes(), rb'/MediaBox\s*\[\s*0\s+0\s+72\.0\s+36\.0\s*\]')
+
     def test_true_vector_paths_from_png_and_jpg(self):
         for suffix in ('png', 'jpg'):
             with self.subTest(suffix=suffix):
