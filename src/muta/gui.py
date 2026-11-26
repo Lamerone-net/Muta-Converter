@@ -21,7 +21,7 @@ from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDialog, QFil
 from . import __version__
 from .catalog import FAMILIES, family_for
 from .engines import ConversionError, diagnostics
-from .integration import install_menu, menu_installed, remove_menu, set_autostart
+from .integration import install_menu, menu_installed, set_autostart
 from .service import Options, convert, targets_for
 from .settings import Preset, Settings, clone_preset, config_dir, load_settings, save_settings
 from .updates import check_latest, download_installer, launch_installer
@@ -393,11 +393,10 @@ class Preferences(QDialog):
         layout.addRow(self.autostart)
         menu_buttons = QWidget()
         buttons = QHBoxLayout(menu_buttons)
-        for label, callback in ((tr('Installa / aggiorna menu'), self.install_shell), (tr('Rimuovi menu'), self.remove_shell)):
-            button = QPushButton(label)
-            button.setEnabled(os.name == "nt")
-            button.clicked.connect(callback)
-            buttons.addWidget(button)
+        button = QPushButton(tr('Installa / aggiorna menu'))
+        button.setEnabled(os.name == "nt")
+        button.clicked.connect(self.install_shell)
+        buttons.addWidget(button)
         layout.addRow(tr('Esplora file'), menu_buttons)
         self.engine_status = QLabel()
         self.engine_status.setWordWrap(True)
@@ -595,13 +594,6 @@ class Preferences(QDialog):
                 self.status.setText(tr('Menu contestuale aggiornato. Windows 11: Mostra altre opzioni.'))
             except (OSError, ConversionError) as exc:
                 QMessageBox.warning(self, tr('Menu contestuale'), str(exc))
-
-    def remove_shell(self):
-        try:
-            remove_menu()
-            self.status.setText(tr('Menu contestuale rimosso.'))
-        except OSError as exc:
-            QMessageBox.warning(self, tr('Menu contestuale'), str(exc))
 
     def choose_conversion(self):
         if not self.save():

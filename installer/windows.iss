@@ -36,29 +36,23 @@ Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 Name: "italian"; MessagesFile: "compiler:Languages\Italian.isl"
 
 [CustomMessages]
-english.ContextMenu=Add Muta to the file context menu
 english.Startup=Start Muta when signing in to Windows
 english.DesktopIcon=Create a desktop shortcut
 english.LaunchTray=Start Muta in the system tray
-french.ContextMenu=Ajouter Muta au menu contextuel des fichiers
 french.Startup=Démarrer Muta à l'ouverture de session Windows
 french.DesktopIcon=Créer un raccourci sur le bureau
 french.LaunchTray=Démarrer Muta dans la zone de notification
-german.ContextMenu=Muta zum Datei-Kontextmenü hinzufügen
 german.Startup=Muta bei der Windows-Anmeldung starten
 german.DesktopIcon=Desktop-Verknüpfung erstellen
 german.LaunchTray=Muta im Infobereich starten
-spanish.ContextMenu=Añadir Muta al menú contextual de archivos
 spanish.Startup=Iniciar Muta al iniciar sesión en Windows
 spanish.DesktopIcon=Crear un acceso directo en el escritorio
 spanish.LaunchTray=Iniciar Muta en la bandeja del sistema
-italian.ContextMenu=Aggiungi Muta al menu contestuale dei file
 italian.Startup=Avvia Muta all'accesso a Windows
 italian.DesktopIcon=Crea un collegamento sul desktop
 italian.LaunchTray=Avvia Muta nella systray
 
 [Tasks]
-Name: "contextmenu"; Description: "{cm:ContextMenu}"; Flags: checkedonce
 Name: "startup"; Description: "{cm:Startup}"; Flags: unchecked
 Name: "desktopicon"; Description: "{cm:DesktopIcon}"; Flags: unchecked
 
@@ -76,7 +70,7 @@ Type: dirifempty; Name: "{autoprograms}\Muta Converter"
 
 [Run]
 Filename: "{app}\Muta.exe"; Parameters: "configure --language {language}"; Flags: runhidden waituntilterminated runasoriginaluser
-Filename: "{app}\Muta.exe"; Parameters: "shell install"; Tasks: contextmenu; Flags: runhidden waituntilterminated runasoriginaluser
+Filename: "{app}\Muta.exe"; Parameters: "shell install"; Flags: runhidden waituntilterminated runasoriginaluser
 Filename: "{app}\Muta.exe"; Parameters: "autostart enable"; Tasks: startup; Flags: runhidden waituntilterminated runasoriginaluser
 Filename: "{app}\Muta.exe"; Parameters: "--tray"; Description: "{cm:LaunchTray}"; Flags: nowait postinstall skipifsilent runasoriginaluser
 

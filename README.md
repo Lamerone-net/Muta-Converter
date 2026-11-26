@@ -2,7 +2,7 @@
 
 Muta is a cross-platform file converter by WoollySheep, built in Python for converting files directly from the right-click menu. It supports images, documents, audio, video and Apple iWork files, with a graphical installer, a system tray icon and customizable conversion presets.
 
-Early working version: **0.1.5**. Windows is the first integration target. The conversion core and Qt interface also run on macOS and Linux; their native file-manager integrations are not implemented yet.
+Early working version: **0.1.6**. Windows is the first integration target. The conversion core and Qt interface also run on macOS and Linux; their native file-manager integrations are not implemented yet.
 
 ## Application
 
@@ -117,7 +117,7 @@ Preferences are stored in `%APPDATA%\MutaConverter\settings.json` on Windows, `~
 .\.venv\Scripts\python.exe scripts/build.py --installer --iscc "C:\Tools\Inno Setup 6\ISCC.exe"
 ```
 
-The Windows installer is written to `dist/installer/Muta-<version>-Setup.exe`. Its default destination is `<system drive>\Programs\Muta` (normally `C:\Programs\Muta`), not AppData. The destination page remains visible, and installation requires administrator privileges. This is an x64 build, so it does not use a `(x86)` folder. It offers current-user context-menu registration, optional startup at login and an optional desktop shortcut, then starts the tray app as the original user. Uninstall removes Muta's menu and startup entry for the uninstalling account while retaining user preferences and converted files. This initial installer is unsigned.
+The Windows installer is written to `dist/installer/Muta-<version>-Setup.exe`. Its default destination is `<system drive>\Programs\Muta` (normally `C:\Programs\Muta`), not AppData. The destination page remains visible, and installation requires administrator privileges. This is an x64 build, so it does not use a `(x86)` folder. It always installs or refreshes the context menu for the current user. This is a required feature, with no installer checkbox or removal button in Preferences. Startup at login and the desktop shortcut remain optional. It then starts the tray app as the original user. Uninstall removes Muta's menu and startup entry for the uninstalling account while retaining user preferences and converted files. This initial installer is unsigned.
 
 Build on each target operating system: PyInstaller does not cross-compile Windows, macOS and Linux apps from a single host. The GitHub Actions workflow prepares native builds. The macOS output includes an `.app`, while Linux produces an application folder. macOS notarization, Linux desktop packages and native Finder/file-manager menus remain future work. Windows packaging currently targets x64.
 

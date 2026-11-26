@@ -104,6 +104,9 @@ class LocalizationTests(unittest.TestCase):
         run = script.split('[Run]')[1].split('[UninstallRun]')[0]
         self.assertLess(run.index('configure --language {language}'), run.index('shell install'))
         self.assertLess(run.index('configure --language {language}'), run.index('--tray'))
+        shell_install = next(line for line in run.splitlines() if 'shell install' in line)
+        self.assertNotIn('Tasks:', shell_install)
+        self.assertNotIn('Name: "contextmenu";', script)
         for language in ('english', 'french', 'german', 'spanish', 'italian'):
             self.assertIn(f'Name: "{language}";', script)
-            self.assertIn(f'{language}.ContextMenu=', script)
+            self.assertIn(f'{language}.LaunchTray=', script)

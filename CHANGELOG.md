@@ -4,6 +4,13 @@ All notable changes are recorded here. Versions follow Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-11-26
+
+### Changed
+
+- Always install or refresh the Windows context menu, including upgrades from installations that previously left the option unchecked; remove the installer checkbox.
+- Remove the menu-removal button from Preferences. Context-menu cleanup still runs during uninstallation.
+
 ## [0.1.5] - 2026-11-26
 
 ### Added
