@@ -33,6 +33,9 @@ class Options:
     archive_level: int = 6
     archive_limit_mb: int = 2048
     archive_max_files: int = 100000
+    svg_color_precision: int = 6
+    svg_speckle: int = 4
+    svg_monochrome: bool = False
 
     def validate(self) -> None:
         from PIL import ImageColor
@@ -40,7 +43,8 @@ class Options:
                   (self.scale, 1, 200), (self.video_crf, 0, 51),
                   (self.audio_bitrate, 32, 320), (self.pdf_quality, 1, 100),
                   (self.archive_level, 0, 9), (self.archive_limit_mb, 1, 1048576),
-                  (self.archive_max_files, 1, 1000000))
+                  (self.archive_max_files, 1, 1000000),
+                  (self.svg_color_precision, 1, 8), (self.svg_speckle, 0, 16))
         if any(type(value) is not int or not low <= value <= high for value, low, high in ranges):
             raise ConversionError(tr('Uno dei parametri numerici è fuori intervallo.'))
         if self.rotation not in (0, 90, 180, 270):

@@ -104,7 +104,7 @@ def load_settings() -> Settings:
         data["language"] = normalize_language(data.get("language", "it"))
         set_language(data["language"])
         schema = data.pop("version", None)
-        if schema not in (1, 2):
+        if schema not in (1, 2, 3):
             raise ValueError(tr('Versione preferenze non supportata'))
         presets = []
         for item in data.pop("presets"):
@@ -117,6 +117,14 @@ def load_settings() -> Settings:
         # Add archive presets to configurations saved before archive support existed.
         if schema == 1 and not any(p.family == "archive" for p in presets):
             presets.extend(p for p in default_presets() if p.family == "archive")
+        if schema < 3:
+            old_inputs = set(next(f for f in FAMILIES if f.name == "image").inputs) - {"svg"}
+            for preset in presets:
+                if (preset.family == "image" and preset.id == f"image_{preset.target}"
+                        and set(preset.inputs) == old_inputs):
+                    preset.inputs.append("svg")
+            if not any(p.id == "image_svg" for p in presets):
+                presets.extend(p for p in default_presets() if p.id == "image_svg")
         settings = Settings(presets=presets, **data)
         if len({p.id for p in presets}) != len(presets):
             raise ValueError(tr('Identificatori duplicati'))
@@ -136,7 +144,7 @@ def save_settings(settings: Settings) -> None:
     handle, temporary = tempfile.mkstemp(prefix="settings-", suffix=".json", dir=directory)
     try:
         with os.fdopen(handle, "w", encoding="utf-8") as stream:
-            json.dump({"version": 2, **asdict(settings)}, stream, ensure_ascii=False, indent=2)
+            json.dump({"version": 3, **asdict(settings)}, stream, ensure_ascii=False, indent=2)
             stream.flush()
             os.fsync(stream.fileno())
         os.replace(temporary, directory / "settings.json")

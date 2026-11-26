@@ -318,6 +318,8 @@ class Preferences(QDialog):
         self.fields = {}
         specifications = [
             ("quality", tr('Qualità immagine (JPG/WebP/AVIF)'), 1, 100),
+            ("svg_color_precision", tr('Dettaglio colori SVG (1–8)'), 1, 8),
+            ("svg_speckle", tr('Rimuovi macchie SVG (pixel)'), 0, 16),
             ("scale", tr('Dimensioni (%)'), 1, 200),
             ("video_crf", tr('Qualità video CRF (minore = migliore)'), 0, 51),
             ("audio_bitrate", tr('Bitrate AAC/Opus (kbps)'), 32, 320),
@@ -347,6 +349,7 @@ class Preferences(QDialog):
             self.fields[key] = widget
             self.form.addRow(label, widget)
         for key, label in (("first_frame", tr('Solo prima pagina/fotogramma (scarta gli altri)')),
+                            ("svg_monochrome", tr('SVG in bianco e nero')),
                             ("include_audio", tr('Includi la prima traccia audio')),
                             ("pdf_lossless", tr('Immagini PDF senza perdita'))):
             widget = QCheckBox(label)
@@ -485,7 +488,9 @@ class Preferences(QDialog):
         video = family == "video" and target in {"mp4", "mkv", "mov", "webm"}
         visible = {"name_template"}
         if family == "image":
-            visible |= {"scale", "rotation", "first_frame"}
+            visible |= {"scale", "rotation", "first_frame", "timeout"}
+            if target == "svg":
+                visible |= {"svg_color_precision", "svg_speckle", "svg_monochrome", "background"}
             if target in {"jpg", "webp", "avif"}:
                 visible.add("quality")
             if target in {"jpg", "pdf", "bmp"}:
@@ -516,6 +521,8 @@ class Preferences(QDialog):
                  "video": tr('Si convertono la prima traccia video e la prima audio. Sottotitoli e altre tracce non vengono trasferiti.'),
                  "archive": tr('Si estraggono i file e si crea un nuovo archivio. ARJ/RAR: solo lettura. Password, link, file speciali e percorsi non sicuri sono rifiutati. Permessi e metadati possono cambiare.')}
         self.note.setText(notes[family])
+        if family == "image" and target == "svg":
+            self.note.setText(tr("SVG con tracciati vettoriali. Più dettaglio aumenta dimensioni e complessità. Ideale per loghi e illustrazioni; le fotografie vengono approssimate. La trasparenza parziale usa il colore di sfondo."))
 
     def add_preset(self):
         self.store_current()

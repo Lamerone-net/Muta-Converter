@@ -44,6 +44,10 @@ def parser() -> argparse.ArgumentParser:
 
 
 def main(argv=None) -> int:
+    raw = sys.argv[1:] if argv is None else argv
+    if len(raw) == 2 and raw[0] == "_svg-worker":
+        from .svg import worker
+        return worker(Path(raw[1]))
     args = None
     try:
         # Uninstall must still work if the user's preferences are damaged.

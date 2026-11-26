@@ -15,8 +15,8 @@ class Family:
 
 FAMILIES = (
     Family("image", "Immagini", "pillow",
-           tuple("jpg jpeg png webp avif gif bmp tif tiff ico ppm pgm pbm tga pcx psd dds icns heic heif".split()),
-           tuple("jpg png webp avif gif bmp tiff ico pdf".split())),
+           tuple("jpg jpeg png webp avif gif bmp tif tiff ico ppm pgm pbm tga pcx psd dds icns heic heif svg".split()),
+           tuple("jpg png webp avif gif bmp tiff ico pdf svg".split())),
     Family("document", "Documenti", "libreoffice",
            tuple("doc docx odt ott rtf txt pages fodt wpd".split()),
            tuple("doc docx odt rtf txt pdf epub".split())),
@@ -41,6 +41,7 @@ ALIASES = {"jpeg": "jpg", "tif": "tiff"}
 APPLE_INPUTS = {"pages", "numbers", "key"}
 
 FORMAT_NAMES = {
+    "svg": "Scalable Vector Graphics",
     "jpg": "JPEG", "png": "Portable Network Graphics", "webp": "WebP",
     "avif": "AV1 Image File Format", "gif": "Graphics Interchange Format",
     "bmp": "Bitmap", "tiff": "Tagged Image File Format", "ico": "Icona Windows",

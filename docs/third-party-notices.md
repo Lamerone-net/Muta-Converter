@@ -7,6 +7,10 @@ Muta uses Python, Pillow, Qt for Python (PySide6-Essentials and Shiboken6), and 
 - Qt for Python: https://doc.qt.io/qtforpython-6/licenses.html
 - pillow-heif / libheif: https://github.com/bigcat88/pillow_heif
 - PyInstaller bootloader: https://pyinstaller.org/en/stable/license.html
+- defusedxml (SVG XML parsing): https://github.com/tiran/defusedxml/blob/main/LICENSE
+- VTracer (SVG vector tracing, MIT): https://github.com/visioncortex/vtracer
+
+SVG rendering uses the Qt SVG module included with Qt for Python. VTracer and defusedxml are bundled with their distribution metadata and license files.
 
 FFmpeg, LibreOffice and 7-Zip are detected from the user's machine; their binaries are not redistributed in the initial installer.
 

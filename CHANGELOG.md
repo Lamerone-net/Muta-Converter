@@ -4,6 +4,15 @@ All notable changes are recorded here. Versions follow Semantic Versioning.
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-11-26
+
+### Added
+
+- Convert SVG files to PNG, JPG, WebP, AVIF, GIF, BMP, TIFF, ICO and raster PDF using bundled Qt SVG rendering.
+- Trace PNG, JPG and other raster images into real SVG vector paths with bundled VTracer, including color detail, speckle removal and black-and-white settings.
+- Add SVG to the context menu and preferences; migrate existing full-input image presets and add the SVG output preset while retaining customized filters, names and options.
+- Run SVG rendering and tracing in a separate process with timeout and size limits; reject external SVG resources and require explicit static export for animations.
+
 ## [0.1.4] - 2026-11-24
 
 ### Changed

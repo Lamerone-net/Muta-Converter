@@ -60,7 +60,11 @@ def diagnostics() -> dict[str, str | None]:
 
 
 def image_supported(source_ext: str, target: str) -> bool:
+    if source_ext.lower() == "svg":
+        return target != "svg" and IMAGE_FORMATS[target] in Image.SAVE
     input_format = Image.registered_extensions().get("." + source_ext.lower())
+    if target == "svg":
+        return input_format in Image.OPEN
     output_format = IMAGE_FORMATS[target]
     return input_format in Image.OPEN and output_format in Image.SAVE
 
@@ -70,6 +74,10 @@ IMAGE_FORMATS = {"jpg": "JPEG", "png": "PNG", "webp": "WEBP", "avif": "AVIF",
 
 
 def convert_image(source: Path, destination: Path, target: str, settings) -> None:
+    if source.suffix.lower() == ".svg" or target == "svg":
+        from .svg import convert_svg
+        convert_svg(source, destination, target, settings)
+        return
     with Image.open(source) as original:
         if getattr(original, "n_frames", 1) > 1 and not settings.first_frame:
             raise ConversionError(tr("Il file contiene più fotogrammi o pagine. Abilita esplicitamente 'Solo prima pagina/fotogramma' oppure usa un altro convertitore."))

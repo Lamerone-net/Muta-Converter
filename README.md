@@ -2,7 +2,7 @@
 
 Muta is a cross-platform file converter by WoollySheep, built in Python for converting files directly from the right-click menu. It supports images, documents, audio, video and Apple iWork files, with a graphical installer, a system tray icon and customizable conversion presets.
 
-Early working version: **0.1.4**. Windows is the first integration target. The conversion core and Qt interface also run on macOS and Linux; their native file-manager integrations are not implemented yet.
+Early working version: **0.1.5**. Windows is the first integration target. The conversion core and Qt interface also run on macOS and Linux; their native file-manager integrations are not implemented yet.
 
 ## Application
 
@@ -26,7 +26,7 @@ The Windows menu is a snapshot of available engines and enabled presets. Saving 
 
 | Family | Example inputs | Outputs | Engine |
 | --- | --- | --- | --- |
-| Images | JPEG, PNG, WebP, AVIF, GIF, TIFF, BMP, ICO, PSD, DDS, TGA, HEIC/HEIF | JPG, PNG, WebP, AVIF, GIF, BMP, TIFF, ICO, PDF | Pillow; optional pillow-heif |
+| Images | JPEG, PNG, WebP, AVIF, GIF, TIFF, BMP, ICO, PSD, DDS, TGA, HEIC/HEIF, SVG | JPG, PNG, WebP, AVIF, GIF, BMP, TIFF, ICO, PDF, SVG | Pillow, Qt SVG, VTracer; optional pillow-heif |
 | Documents | DOC, DOCX, ODT, RTF, TXT, **Pages** | DOC, DOCX, ODT, RTF, TXT, PDF, EPUB | LibreOffice |
 | Spreadsheets | XLS, XLSX, XLSM, XLSB, ODS, CSV, TSV, **Numbers** | XLS, XLSX, ODS, CSV, PDF | LibreOffice |
 | Presentations | PPT, PPTX, PPS, PPSX, ODP, **Keynote** | PPT, PPTX, ODP, PDF | LibreOffice |
@@ -35,6 +35,10 @@ The Windows menu is a snapshot of available engines and enabled presets. Saving 
 | Archives | ZIP, 7Z, TAR, TGZ, GZ, TBZ2, BZ2, TXZ, XZ, ARJ, RAR, CAB, LZH | ZIP, 7Z, TAR, TGZ, TBZ2, TXZ | 7-Zip |
 
 The complete catalogue is in `src/muta/catalog.py`. A listed extension is a supported routing option, not a guarantee that every variant or codec is readable.
+
+**SVG:** SVG inputs are rasterized with the bundled Qt SVG engine; PDF output also contains a raster image. Dimensions come from the SVG size/viewBox and the preset scale. Transparent PNG/WebP output, rotation and opaque background settings are supported. Qt SVG supports a subset of SVG; complex filters, text layout and browser-specific features may differ. Fonts must be installed. External images, scripts and HTML content are rejected; raster images must be embedded. Animated SVG requires explicit first-frame export. Input is limited to 32 MiB and rendering to 40 million pixels / 16,384 pixels per side.
+
+Raster images can be traced to **SVG - Scalable Vector Graphics**, using real vector paths rather than an embedded bitmap. Choose color detail (1–8), speckle removal (0–16 pixels), or black and white in Preferences. Tracing is approximate, especially for photos; higher detail increases complexity. Fully transparent pixels remain transparent; partial transparency is blended against the preset background. Tracing is limited to 4 million pixels after scaling. Both operations honor the timeout. Older full-input image presets gain SVG support; customized input filters remain unchanged.
 
 **Archives:** conversion extracts files into temporary storage and repacks them. TAR compression layers are unwrapped for TGZ/TBZ2/TXZ input. ARJ and RAR are input-only. Encrypted archives, symbolic/hard links, special files, duplicate paths and unsafe member paths are rejected. Default extraction limits are 2 GiB and 100,000 entries, configurable per preset. Limits are checked against the member listing before extraction and actual files afterward. File contents and relative paths are retained; permissions and archive-specific metadata can change. Available source formats depend on the installed 7-Zip build. Use a current engine version.
 
@@ -171,3 +175,7 @@ Tests exercise actual image conversion, concurrency/collisions, corrupt inputs, 
 - [Modern Windows Explorer integration](https://learn.microsoft.com/en-us/windows/apps/desktop/modernize/integrate-packaged-app-with-file-explorer)
 - [PyInstaller platform requirements](https://pyinstaller.org/en/stable/requirements.html)
 - [Inno Setup documentation](https://jrsoftware.org/inno-setup/documentation/)
+
+## Updating on Windows
+
+Install a newer setup over the existing installation; normally no uninstall, sign-out or reboot is needed. Finish conversions, choose **Quit** from the Muta tray menu, run the new installer and start Muta again. Verify the version in **About**. Installation refreshes an existing context menu and migrates preferences. If needed, use **Preferences → Application → Install / update menu**. A fresh installation defaults to `C:\Programs\Muta`; upgrades can retain the older `Muta Converter` folder name. The folder name does not indicate the version. GitHub releases and local `dist` builds are separate files; always check the version in the setup filename.
